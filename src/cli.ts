@@ -3,7 +3,11 @@
 // Moltbook Watcher CLI
 // ============================================
 
+import dotenv from 'dotenv';
 import { createCollector } from './collector.js';
+
+// Load environment variables from .env file
+dotenv.config();
 import { getClassifiedSamples } from './sample-data.js';
 import { generateDailyDigest, formatDigestMarkdown, exportDigest } from './reporter.js';
 import { writeFile, mkdir } from 'fs/promises';

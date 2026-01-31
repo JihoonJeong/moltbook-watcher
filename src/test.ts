@@ -2,7 +2,11 @@
 // Moltbook Watcher - Test & Demo
 // ============================================
 
+import dotenv from 'dotenv';
 import { createCollector } from './collector.js';
+
+// Load environment variables from .env file
+dotenv.config();
 import { 
   estimateSignificance, 
   detectTopicHeuristic,
