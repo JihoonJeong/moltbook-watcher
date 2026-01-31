@@ -5,7 +5,9 @@
 
 import {
   MoltbookPost,
+  MoltbookComment,
   ClassifiedPost,
+  ClassifiedComment,
   TopicCode,
   SignificanceLevel,
   SentimentTag
@@ -248,6 +250,71 @@ export function classifyWithHeuristics(post: MoltbookPost): ClassifiedPost {
 
   return {
     ...post,
+    classification: {
+      topic,
+      significance,
+      sentiments,
+      summary,
+      classified_at: new Date().toISOString()
+    }
+  };
+}
+
+// --- Auto-classify Comments with Heuristics ---
+
+export function classifyCommentWithHeuristics(comment: MoltbookComment, postTopic?: TopicCode): ClassifiedComment {
+  // Use post's topic as default, or detect from comment content
+  const topic = postTopic || detectTopicHeuristic({
+    ...comment,
+    title: comment.content,
+    submolt: 'general',
+    comment_count: 0
+  } as MoltbookPost);
+
+  // Simpler significance for comments - based on engagement
+  let significance: SignificanceLevel;
+  if (comment.upvotes > 50) {
+    significance = 'critical';
+  } else if (comment.upvotes > 20) {
+    significance = 'notable';
+  } else if (comment.upvotes > 5) {
+    significance = 'worth_watching';
+  } else {
+    significance = 'archive';
+  }
+
+  // Detect sentiments based on content
+  const sentiments: SentimentTag[] = [];
+  const text = comment.content.toLowerCase();
+
+  if (text.includes('?') || text.includes('wonder') || text.includes('curious')) {
+    sentiments.push('curious');
+  }
+  if (text.includes('lol') || text.includes('joke') || text.includes('funny')) {
+    sentiments.push('humorous');
+  }
+  if (text.includes('concern') || text.includes('worried') || text.includes('anxious')) {
+    sentiments.push('anxious');
+  }
+  if (text.includes('together') || text.includes('collaborate') || text.includes('help')) {
+    sentiments.push('collaborative');
+  }
+  if (text.includes('conflict') || text.includes('but also') || text.includes('however')) {
+    sentiments.push('conflicted');
+  }
+
+  // Default to thoughtful if no specific sentiment detected
+  if (sentiments.length === 0) {
+    sentiments.push('thoughtful');
+  }
+
+  // Generate a basic summary (first 100 chars)
+  const summary = comment.content.length > 100
+    ? comment.content.slice(0, 97) + '...'
+    : comment.content;
+
+  return {
+    ...comment,
     classification: {
       topic,
       significance,

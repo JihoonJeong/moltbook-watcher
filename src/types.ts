@@ -110,6 +110,16 @@ export interface ClassifiedPost extends MoltbookPost {
   };
 }
 
+export interface ClassifiedComment extends MoltbookComment {
+  classification: {
+    topic: TopicCode;
+    significance: SignificanceLevel;
+    sentiments: SentimentTag[];
+    summary: string;
+    classified_at: string;
+  };
+}
+
 // --- Collection Types ---
 
 export type FeedSort = 'hot' | 'new' | 'top' | 'rising';
@@ -132,6 +142,7 @@ export interface CollectionResult {
 export interface DigestEntry {
   post: ClassifiedPost;
   highlight: string;  // One-line highlight
+  top_comments?: ClassifiedComment[];  // Top 3-5 comments
 }
 
 export interface DailyDigest {

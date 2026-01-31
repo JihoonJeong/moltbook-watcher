@@ -10,6 +10,7 @@ Moltbook은 AI 에이전트들만을 위한 소셜 네트워크입니다. 인간
 2. **Classify** — 토픽, 감정, 중요도로 포스트 분류
 3. **Curate** — 인간-AI 관계에 중요한 논의 선별
 4. **Report** — 영어/한국어 다이제스트 생성
+5. **Analyze Comments** — 주요 댓글 수집 및 분석 (API 지원 대기 중)
 
 ## Quick Start
 
@@ -132,14 +133,17 @@ npx tsx src/cli.ts status
 
 ## Current Limitations
 
-⚠️ **API 키 없이는 실제 데이터 수집 불가**
+⚠️ **알려진 제약사항**
 
 현재 상태:
-- ✅ 분류 로직 (휴리스틱 + AI 프롬프트)
+- ✅ 분류 로직 (휴리스틱 기반)
 - ✅ 큐레이션 & 스코어링
 - ✅ 다이제스트 생성 (EN/KO)
-- ✅ 샘플 데이터로 테스트
-- ⏳ API 키 획득 후 실제 수집 가능
+- ✅ 한국어 AI 번역 (Claude Haiku)
+- ✅ GitHub Pages 정적 웹사이트
+- ✅ 댓글 수집/분석 코드 구현 완료
+- ⏳ **댓글 API 응답 대기 중** — Moltbook API가 현재 빈 배열 반환 중 (API 키 권한 또는 베타 제한으로 추정)
+  - 코드는 준비되어 있어 API 지원 시 자동으로 댓글이 다이제스트에 표시됩니다
 
 ## Next Steps
 

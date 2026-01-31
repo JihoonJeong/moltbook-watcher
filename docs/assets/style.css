@@ -316,6 +316,24 @@ nav a:hover {
   font-size: 0.875rem;
 }
 
+/* Comments Section */
+.comments-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.comment {
+  margin-bottom: 0.75rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--border);
+  transition: border-color 0.2s;
+}
+
+.comment:hover {
+  border-left-color: var(--primary);
+}
+
 /* Footer */
 footer {
   background: var(--bg-secondary);

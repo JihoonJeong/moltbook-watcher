@@ -7,6 +7,7 @@ import {
   DigestEntry,
   DailyDigest,
   ClassifiedPost,
+  ClassifiedComment,
   TopicCode,
   SignificanceLevel
 } from './types.js';
@@ -54,17 +55,16 @@ const SIGNIFICANCE_LABELS_KO: Record<SignificanceLevel, string> = {
 // --- Generate Daily Digest ---
 
 export async function generateDailyDigest(
-  posts: ClassifiedPost[],
+  entries: DigestEntry[],
   language: 'en' | 'ko',
   date?: string
 ): Promise<DailyDigest> {
-  const entries = curateForDigest(posts, { maxPosts: 10 });
-
   // Translate to Korean if needed
   if (language === 'ko' && isTranslationEnabled()) {
-    console.log('🌐 Translating posts to Korean...');
+    console.log('🌐 Translating posts and comments to Korean...');
 
     for (const entry of entries) {
+      // Translate post
       try {
         const translated = await translateToKorean({
           title: entry.post.title,
@@ -80,11 +80,32 @@ export async function generateDailyDigest(
         console.warn(`Failed to translate post: ${entry.post.title.slice(0, 50)}`);
         // Keep original on error
       }
+
+      // Translate comments
+      if (entry.top_comments) {
+        for (const comment of entry.top_comments) {
+          try {
+            const translated = await translateToKorean({
+              title: '', // Comments don't have titles
+              content: comment.content,
+            });
+
+            // Update the comment with translation
+            if (translated.content) {
+              comment.content = translated.content;
+            }
+          } catch (error) {
+            console.warn(`Failed to translate comment: ${comment.content.slice(0, 30)}`);
+            // Keep original on error
+          }
+        }
+      }
     }
 
-    console.log(`✅ Translated ${entries.length} posts`);
+    console.log(`✅ Translated ${entries.length} posts and their comments`);
   }
 
+  const posts = entries.map(e => e.post);
   const themes = extractThemes(posts);
 
   const reflectionQuestions = {
@@ -172,13 +193,32 @@ export function formatDigestMarkdown(digest: DailyDigest): string {
     }
 
     lines.push(`— **@${post.author.name}** | ⬆️ ${post.upvotes} | 💬 ${post.comment_count}`);
-    
+
     if (classification.human_ai_relevance) {
       lines.push('');
       if (isKorean) {
         lines.push(`**인사이트:** ${classification.human_ai_relevance}`);
       } else {
         lines.push(`**Insight:** ${classification.human_ai_relevance}`);
+      }
+    }
+
+    // Add top comments section
+    if (entry.top_comments && entry.top_comments.length > 0) {
+      lines.push('');
+      if (isKorean) {
+        lines.push(`**💬 주요 댓글:**`);
+      } else {
+        lines.push(`**💬 Top Comments:**`);
+      }
+      lines.push('');
+
+      for (const comment of entry.top_comments) {
+        const commentPreview = comment.content.length > 200
+          ? comment.content.slice(0, 197) + '...'
+          : comment.content;
+        lines.push(`> *@${comment.author.name}* (⬆️ ${comment.upvotes}): ${commentPreview.replace(/\n/g, ' ')}`);
+        lines.push('');
       }
     }
 

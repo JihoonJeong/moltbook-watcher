@@ -19,6 +19,11 @@ interface DigestData {
     upvotes: number;
     comments: number;
     excerpt: string;
+    topComments?: Array<{
+      author: string;
+      upvotes: number;
+      content: string;
+    }>;
   }>;
   themes: string[];
   reflection: string;
@@ -94,20 +99,52 @@ function parseDigest(markdown: string, filename: string): DigestData {
   const date = dateMatch ? dateMatch[1] : '';
   const language = filename.includes('-ko') ? 'ko' : 'en';
 
-  // Extract posts (simplified)
+  // Extract posts with optional comments section
   const posts: DigestData['posts'] = [];
-  const postRegex = /### \d+\. (.+?)\n\n(.+?) \| (.+?)\n\n> (.+?)\n\n— \*\*@(.+?)\*\* \| ⬆️ (\d+) \| 💬 (\d+)/gs;
 
-  let match;
-  while ((match = postRegex.exec(markdown)) !== null) {
+  // Split by post headers (###)
+  const postSections = markdown.split(/(?=### \d+\.)/g).filter(s => s.trim().startsWith('###'));
+
+  for (const section of postSections) {
+    // Extract title
+    const titleMatch = section.match(/### \d+\. (.+)/);
+    if (!titleMatch) continue;
+
+    // Extract significance and topic
+    const metaMatch = section.match(/(.+?) \| (.+?)\n/);
+    if (!metaMatch) continue;
+
+    // Extract excerpt
+    const excerptMatch = section.match(/\n> (.+?)\n\n—/s);
+
+    // Extract author and stats
+    const statsMatch = section.match(/— \*\*@(.+?)\*\* \| ⬆️ (\d+) \| 💬 (\d+)/);
+    if (!statsMatch) continue;
+
+    // Extract comments if present
+    const topComments: DigestData['posts'][0]['topComments'] = [];
+    const commentsSection = section.match(/\*\*💬 .+?\*\*\n\n([\s\S]+?)(?=\n\n##|\n\n---|\n\n$|$)/);
+
+    if (commentsSection) {
+      const commentMatches = commentsSection[1].matchAll(/> \*@(.+?)\* \(⬆️ (\d+)\): (.+)/g);
+      for (const commentMatch of commentMatches) {
+        topComments.push({
+          author: commentMatch[1],
+          upvotes: parseInt(commentMatch[2]),
+          content: commentMatch[3]
+        });
+      }
+    }
+
     posts.push({
-      title: match[1],
-      significance: match[2].includes('Critical') ? 'critical' : 'notable',
-      topic: match[3],
-      excerpt: match[4].slice(0, 200) + '...',
-      author: match[5],
-      upvotes: parseInt(match[6]),
-      comments: parseInt(match[7])
+      title: titleMatch[1],
+      significance: metaMatch[1].includes('Critical') || metaMatch[1].includes('긴급') ? 'critical' : 'notable',
+      topic: metaMatch[2],
+      excerpt: excerptMatch ? excerptMatch[1].slice(0, 200) + '...' : '',
+      author: statsMatch[1],
+      upvotes: parseInt(statsMatch[2]),
+      comments: parseInt(statsMatch[3]),
+      topComments: topComments.length > 0 ? topComments : undefined
     });
   }
 
@@ -148,6 +185,26 @@ function generateHtmlPage(digest: DigestData): string {
       ? (isKorean ? '긴급' : 'Critical')
       : (isKorean ? '주목' : 'Notable');
 
+    const commentsHtml = post.topComments && post.topComments.length > 0
+      ? `
+        <div class="comments-section">
+          <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.75rem;">
+            💬 ${isKorean ? '주요 댓글' : 'Top Comments'}
+          </h4>
+          ${post.topComments.map(comment => `
+            <div class="comment" style="margin-bottom: 0.75rem; padding-left: 1rem; border-left: 2px solid var(--border);">
+              <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.25rem;">
+                <strong>@${comment.author}</strong> <span style="margin-left: 0.5rem;">⬆️ ${comment.upvotes}</span>
+              </div>
+              <div style="font-size: 0.875rem; color: var(--text); line-height: 1.5;">
+                ${comment.content}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `
+      : '';
+
     return `
       <div class="post-card">
         <div class="post-header">
@@ -167,6 +224,7 @@ function generateHtmlPage(digest: DigestData): string {
             <span>💬 ${post.comments.toLocaleString()}</span>
           </div>
         </div>
+        ${commentsHtml}
       </div>
     `;
   }).join('\n');

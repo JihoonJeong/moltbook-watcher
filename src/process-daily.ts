@@ -8,11 +8,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { loadCollectedData, filterPostsByDate, getDateRange, getPostStats, getDateString } from './utils.js';
-import { classifyWithHeuristics } from './classifier.js';
+import { classifyWithHeuristics, classifyCommentWithHeuristics } from './classifier.js';
 import { rankPosts } from './curator.js';
 import { generateDailyDigest, formatDigestMarkdown, exportDigest } from './reporter.js';
+import { createCollector } from './collector.js';
 import { join } from 'path';
-import type { ClassifiedPost } from './types.js';
+import type { ClassifiedPost, ClassifiedComment, DigestEntry } from './types.js';
 
 interface ProcessOptions {
   dataDir?: string;
@@ -76,10 +77,42 @@ async function processDailyDigest(options: ProcessOptions = {}) {
     console.log(`       Topic: ${post.classification.topic}, Sig: ${post.classification.significance}`);
   }
 
-  // 5. Generate digest
+  // 5. Collect and classify comments for top posts
+  console.log('\n💬 Collecting comments for top posts...');
+  const collector = createCollector();
+  const digestEntries: DigestEntry[] = [];
+
+  for (const post of topPosts) {
+    console.log(`  → Fetching comments for: ${post.title.slice(0, 40)}...`);
+
+    const comments = await collector.getPostComments(post.id, 'top');
+    console.log(`    Found ${comments.length} comments`);
+
+    // Classify and rank top 3-5 comments
+    const classifiedComments: ClassifiedComment[] = comments
+      .slice(0, 10) // Only consider top 10
+      .map(comment => classifyCommentWithHeuristics(comment, post.classification.topic));
+
+    // Sort by upvotes and take top 3
+    const topComments = classifiedComments
+      .sort((a, b) => b.upvotes - a.upvotes)
+      .slice(0, 3);
+
+    digestEntries.push({
+      post,
+      highlight: post.classification.summary,
+      top_comments: topComments.length > 0 ? topComments : undefined
+    });
+
+    if (topComments.length > 0) {
+      console.log(`    Selected ${topComments.length} top comments (max upvotes: ${topComments[0].upvotes})`);
+    }
+  }
+
+  // 6. Generate digest
   console.log(`\n📰 Generating ${language.toUpperCase()} digest...`);
   const today = getDateString();
-  const digest = await generateDailyDigest(topPosts, language, today);
+  const digest = await generateDailyDigest(digestEntries, language, today);
 
   console.log(`  → ${digest.entries.length} entries`);
   console.log(`  → Themes: ${digest.emerging_themes.join(', ')}`);
