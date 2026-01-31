@@ -126,6 +126,47 @@ npx tsx src/cli.ts digest ko
 npx tsx src/cli.ts status
 ```
 
+## 자동화
+
+### GitHub Actions 설정
+
+이 프로젝트는 GitHub Actions를 사용하여 매일 자동으로 다이제스트를 생성합니다.
+
+#### 1. Secrets 설정
+
+저장소 **Settings → Secrets and variables → Actions**에서 추가:
+
+- `MOLTBOOK_API_KEY` (필수) — Moltbook API 키
+- `ANTHROPIC_API_KEY` (선택) — 한국어 번역용
+
+#### 2. Actions 활성화
+
+- 저장소의 **Actions** 탭으로 이동
+- 프롬프트가 표시되면 워크플로우 활성화
+
+#### 3. 자동 스케줄
+
+워크플로우는 **매일 오전 9시 (한국 시간)**에 실행되어:
+
+1. Moltbook에서 최신 포스트 수집
+2. 영어 다이제스트 생성
+3. 한국어 다이제스트 생성 (AI 번역)
+4. 웹사이트 업데이트
+5. 변경사항 커밋 및 푸시
+
+#### 4. 수동 실행
+
+워크플로우를 수동으로 실행할 수도 있습니다:
+
+1. **Actions** 탭으로 이동
+2. "Daily Digest Generation" 선택
+3. "Run workflow" 클릭
+4. 언어(en/ko/both)와 일수 선택
+
+### 워크플로우 파일
+
+자세한 내용은 [`.github/workflows/daily-digest.yml`](.github/workflows/daily-digest.yml)을 참조하세요.
+
 ## Bilingual Output
 
 모든 다이제스트는 영어와 한국어로 생성 가능:
@@ -136,27 +177,25 @@ npx tsx src/cli.ts status
 | Insight Reports | Global VC/tech | 한국 기업 브리핑 |
 | Trend Analysis | LinkedIn, X | 한국 소셜 미디어 |
 
-## Current Limitations
+## 현재 상태
 
-⚠️ **알려진 제약사항**
-
-현재 상태:
-- ✅ 분류 로직 (휴리스틱 기반)
-- ✅ 큐레이션 & 스코어링
-- ✅ 다이제스트 생성 (EN/KO)
-- ✅ 한국어 AI 번역 (Claude Haiku)
+### ✅ 구현 완료
+- ✅ 휴리스틱 기반 분류
+- ✅ 다중 요소 큐레이션 & 스코어링
+- ✅ 이중 언어 다이제스트 생성 (EN/KO)
+- ✅ AI 기반 한국어 번역 (Claude Haiku)
 - ✅ GitHub Pages 정적 웹사이트
-- ✅ 댓글 수집/분석 코드 구현 완료
-- ⏳ **댓글 API 응답 대기 중** — Moltbook API가 현재 빈 배열 반환 중 (API 키 권한 또는 베타 제한으로 추정)
+- ✅ 댓글 수집/분석 코드 완료
+- ✅ **매일 자동 배포** (GitHub Actions)
+
+### ⏳ 대기 중
+- ⏳ **댓글 API 응답** — Moltbook API가 현재 빈 배열 반환 중 (API 키 권한 또는 베타 제한으로 추정)
   - 코드는 준비되어 있어 API 지원 시 자동으로 댓글이 다이제스트에 표시됩니다
 
-## Next Steps
-
-1. [ ] Moltbook 에이전트 등록 & API 키 획득
-2. [ ] 실시간 수집 테스트
-3. [ ] Claude API 연동 (AI 분류)
-4. [ ] 스케줄러 구현
-5. [ ] 인사이트 알림 시스템
+### 🔜 계획 중
+- 번역 품질 개선 (60% → 90%+ 성공률)
+- 주간 다이제스트 및 트렌드 분석
+- RSS 피드 지원
 
 ---
 

@@ -157,6 +157,47 @@ npm run process-daily:ko    # Korean
 npm run generate-site
 ```
 
+## Automation
+
+### GitHub Actions Setup
+
+This project includes automated daily digest generation using GitHub Actions.
+
+#### 1. Configure Secrets
+
+Go to your repository **Settings → Secrets and variables → Actions** and add:
+
+- `MOLTBOOK_API_KEY` (required) — Your Moltbook API key
+- `ANTHROPIC_API_KEY` (optional) — For Korean translation
+
+#### 2. Enable Actions
+
+- Go to **Actions** tab in your repository
+- Enable workflows if prompted
+
+#### 3. Automatic Schedule
+
+The workflow runs **daily at 9:00 AM KST (00:00 UTC)** and:
+
+1. Collects latest posts from Moltbook
+2. Generates English digest
+3. Generates Korean digest (with AI translation)
+4. Updates the website
+5. Commits and pushes changes
+
+#### 4. Manual Trigger
+
+You can also run the workflow manually:
+
+1. Go to **Actions** tab
+2. Select "Daily Digest Generation"
+3. Click "Run workflow"
+4. Choose language (en/ko/both) and days ago
+
+### Workflow File
+
+See [`.github/workflows/daily-digest.yml`](.github/workflows/daily-digest.yml) for details.
+
 ## Current Status
 
 ### ✅ Implemented
@@ -166,6 +207,7 @@ npm run generate-site
 - ✅ AI-powered Korean translation (Claude Haiku)
 - ✅ GitHub Pages static website
 - ✅ Comment collection/analysis code complete
+- ✅ **Automated daily deployment** (GitHub Actions)
 
 ### ⏳ Pending
 - ⏳ **Comment API Response** — Moltbook API currently returns empty arrays (likely due to API key permissions or beta limitations)
@@ -173,9 +215,8 @@ npm run generate-site
 
 ### 🔜 Planned
 - Translation quality improvement (60% → 90%+ success rate)
-- Video script generation for YouTube Shorts
 - Weekly digest with trend analysis
-- Automated deployment (GitHub Actions)
+- RSS feed support
 
 ## Technology Stack
 
