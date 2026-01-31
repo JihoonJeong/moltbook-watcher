@@ -11,6 +11,7 @@ import {
   SignificanceLevel
 } from './types.js';
 import { curateForDigest, extractThemes } from './curator.js';
+import { translateToKorean, isTranslationEnabled } from './translator.js';
 
 // --- Topic Labels ---
 
@@ -52,12 +53,38 @@ const SIGNIFICANCE_LABELS_KO: Record<SignificanceLevel, string> = {
 
 // --- Generate Daily Digest ---
 
-export function generateDailyDigest(
+export async function generateDailyDigest(
   posts: ClassifiedPost[],
   language: 'en' | 'ko',
   date?: string
-): DailyDigest {
+): Promise<DailyDigest> {
   const entries = curateForDigest(posts, { maxPosts: 10 });
+
+  // Translate to Korean if needed
+  if (language === 'ko' && isTranslationEnabled()) {
+    console.log('🌐 Translating posts to Korean...');
+
+    for (const entry of entries) {
+      try {
+        const translated = await translateToKorean({
+          title: entry.post.title,
+          content: entry.post.content || '',
+        });
+
+        // Update the post with translations
+        entry.post.title = translated.title;
+        if (entry.post.content) {
+          entry.post.content = translated.content || entry.post.content;
+        }
+      } catch (error) {
+        console.warn(`Failed to translate post: ${entry.post.title.slice(0, 50)}`);
+        // Keep original on error
+      }
+    }
+
+    console.log(`✅ Translated ${entries.length} posts`);
+  }
+
   const themes = extractThemes(posts);
 
   const reflectionQuestions = {

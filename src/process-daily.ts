@@ -79,7 +79,7 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   // 5. Generate digest
   console.log(`\n📰 Generating ${language.toUpperCase()} digest...`);
   const today = getDateString();
-  const digest = generateDailyDigest(topPosts, language, today);
+  const digest = await generateDailyDigest(topPosts, language, today);
 
   console.log(`  → ${digest.entries.length} entries`);
   console.log(`  → Themes: ${digest.emerging_themes.join(', ')}`);

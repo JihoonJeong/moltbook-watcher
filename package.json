@@ -18,6 +18,7 @@
     "test": "tsx src/test.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
     "dotenv": "^16.3.1"
   },
   "devDependencies": {
