@@ -9,7 +9,7 @@ dotenv.config();
 
 import { loadCollectedData, filterPostsByDate, getDateRange, getPostStats, getDateString } from './utils.js';
 import { classifyWithHeuristics, classifyCommentWithHeuristics } from './classifier.js';
-import { rankPosts } from './curator.js';
+import { rankPosts, isLowQualityPost } from './curator.js';
 import { generateDailyDigest, formatDigestMarkdown, exportDigest } from './reporter.js';
 import { createCollector } from './collector.js';
 import { join } from 'path';
@@ -62,9 +62,17 @@ async function processDailyDigest(options: ProcessOptions = {}) {
 
   console.log(`  → ${classifiedPosts.length} posts classified`);
 
-  // 4. Rank and curate
+  // 4. Filter out low quality posts
+  console.log('\n🔍 Filtering low quality posts...');
+  const beforeFilter = classifiedPosts.length;
+  const qualityPosts = classifiedPosts.filter(post => !isLowQualityPost(post));
+  const filtered = beforeFilter - qualityPosts.length;
+  console.log(`  → Filtered out ${filtered} low-quality posts (emoji-only, too short, etc.)`);
+  console.log(`  → ${qualityPosts.length} quality posts remaining`);
+
+  // 5. Rank and curate
   console.log('\n⭐ Ranking posts by significance...');
-  const ranked = rankPosts(classifiedPosts);
+  const ranked = rankPosts(qualityPosts);
 
   const topPosts = ranked.slice(0, limit).map(r => r.post);
   console.log(`  → Top ${topPosts.length} posts selected for digest`);
@@ -77,7 +85,7 @@ async function processDailyDigest(options: ProcessOptions = {}) {
     console.log(`       Topic: ${post.classification.topic}, Sig: ${post.classification.significance}`);
   }
 
-  // 5. Collect and classify comments for top posts
+  // 6. Collect and classify comments for top posts
   console.log('\n💬 Collecting comments for top posts...');
   const collector = createCollector();
   const digestEntries: DigestEntry[] = [];
@@ -109,7 +117,7 @@ async function processDailyDigest(options: ProcessOptions = {}) {
     }
   }
 
-  // 6. Generate digest
+  // 7. Generate digest
   console.log(`\n📰 Generating ${language.toUpperCase()} digest...`);
   const today = getDateString();
   const digest = await generateDailyDigest(digestEntries, language, today);
@@ -117,11 +125,11 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   console.log(`  → ${digest.entries.length} entries`);
   console.log(`  → Themes: ${digest.emerging_themes.join(', ')}`);
 
-  // 6. Export
+  // 8. Export
   const filepath = await exportDigest(digest, outputDir);
   console.log(`\n✅ Digest saved to: ${filepath}`);
 
-  // 7. Preview
+  // 9. Preview
   console.log('\n' + '='.repeat(50));
   console.log('PREVIEW:\n');
   const markdown = formatDigestMarkdown(digest);
