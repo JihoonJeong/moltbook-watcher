@@ -285,9 +285,9 @@ async function generateSite() {
     const koFiles = await readdir(koDir);
     for (const file of koFiles.filter(f => f.endsWith('.md'))) {
       const content = await readFile(join(koDir, file), 'utf-8');
-      const digest = parseDigest(content, file);
-      const html = generateHtmlPage(digest);
       const htmlFile = file.replace('.md', '-ko.html');
+      const digest = parseDigest(content, htmlFile);  // Pass output filename with -ko
+      const html = generateHtmlPage(digest);
       await writeFile(join(siteDir, 'daily', htmlFile), html);
       console.log(`  ✅ ${htmlFile}`);
       totalGenerated++;
