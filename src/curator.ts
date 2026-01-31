@@ -38,6 +38,24 @@ export function meetsSignificance(
          significanceIndex(minLevel);
 }
 
+// --- Quality Filters ---
+
+export function isLowQualityPost(post: ClassifiedPost): boolean {
+  const title = post.title.trim();
+
+  // Filter out emoji-only posts (less than 5 chars or mostly emojis)
+  if (title.length < 5) return true;
+
+  // Count non-emoji characters
+  const emojiRegex = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu;
+  const withoutEmoji = title.replace(emojiRegex, '').trim();
+
+  // If less than 3 real characters, it's low quality
+  if (withoutEmoji.length < 3) return true;
+
+  return false;
+}
+
 // --- Filter Posts ---
 
 export function filterPosts(
@@ -46,6 +64,9 @@ export function filterPosts(
 ): ClassifiedPost[] {
   return posts.filter(post => {
     const { classification } = post;
+
+    // Skip low quality posts
+    if (isLowQualityPost(post)) return false;
 
     // Significance check
     if (criteria.minSignificance) {
@@ -115,17 +136,19 @@ export function scorePost(
   post: ClassifiedPost,
   priorityTopics: TopicCode[] = ['EXIST', 'HUMAN', 'ETHICS', 'META']
 ): PostScore {
-  const significance = (4 - significanceIndex(post.classification.significance)) * 25;
-  
-  // Engagement score (logarithmic)
+  const significance = (4 - significanceIndex(post.classification.significance)) * 20;
+
+  // Engagement score (logarithmic, higher cap)
+  // Uses combined upvotes + comments
+  const totalEngagement = (post.upvotes || 1) + (post.comment_count + 1);
   const engagement = Math.min(
-    Math.log10((post.upvotes || 1) * (post.comment_count + 1)) * 15,
-    30
+    Math.log10(totalEngagement) * 25,
+    60  // Raised from 30 to 60
   );
 
-  // Recency score (decays over 48 hours)
+  // Recency score (decays over 72 hours, reduced weight)
   const ageHours = (Date.now() - new Date(post.created_at).getTime()) / (1000 * 60 * 60);
-  const recency = Math.max(0, 20 - (ageHours / 48) * 20);
+  const recency = Math.max(0, 15 - (ageHours / 72) * 15);  // Reduced from 20 to 15
 
   // Topic relevance
   const allTopics = [
@@ -133,7 +156,7 @@ export function scorePost(
     ...(post.classification.secondary_topics || [])
   ];
   const matchingTopics = priorityTopics.filter(t => allTopics.includes(t));
-  const topic_relevance = matchingTopics.length * 10;
+  const topic_relevance = matchingTopics.length * 15;  // Increased from 10 to 15
 
   return {
     post,

@@ -10,6 +10,10 @@
     "start": "node dist/index.js",
     "collect": "tsx src/cli.ts collect",
     "digest": "tsx src/cli.ts digest",
+    "digest:ko": "tsx src/cli.ts digest ko",
+    "process-daily": "tsx src/process-daily.ts en 5",
+    "process-daily:ko": "tsx src/process-daily.ts ko 5",
+    "debug": "tsx src/debug-data.ts",
     "test": "tsx src/test.ts"
   },
   "dependencies": {

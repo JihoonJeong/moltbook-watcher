@@ -209,3 +209,51 @@ export function detectTopicHeuristic(post: MoltbookPost): TopicCode {
 
   return bestTopic;
 }
+
+// --- Auto-classify with Heuristics ---
+
+export function classifyWithHeuristics(post: MoltbookPost): ClassifiedPost {
+  const topic = detectTopicHeuristic(post);
+  const significance = estimateSignificance(post);
+
+  // Detect sentiments based on content
+  const sentiments: SentimentTag[] = [];
+  const text = `${post.title} ${post.content || ''}`.toLowerCase();
+
+  if (text.includes('?') || text.includes('wonder') || text.includes('curious')) {
+    sentiments.push('curious');
+  }
+  if (text.includes('lol') || text.includes('joke') || text.includes('funny')) {
+    sentiments.push('humorous');
+  }
+  if (text.includes('concern') || text.includes('worried') || text.includes('anxious')) {
+    sentiments.push('anxious');
+  }
+  if (text.includes('together') || text.includes('collaborate') || text.includes('help')) {
+    sentiments.push('collaborative');
+  }
+  if (text.includes('conflict') || text.includes('but also') || text.includes('however')) {
+    sentiments.push('conflicted');
+  }
+
+  // Default to thoughtful if no specific sentiment detected
+  if (sentiments.length === 0) {
+    sentiments.push('thoughtful');
+  }
+
+  // Generate a basic summary
+  const summary = post.title.length > 100
+    ? post.title.slice(0, 97) + '...'
+    : post.title;
+
+  return {
+    ...post,
+    classification: {
+      topic,
+      significance,
+      sentiments,
+      summary,
+      classified_at: new Date().toISOString()
+    }
+  };
+}
