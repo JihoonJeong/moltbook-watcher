@@ -1,158 +1,247 @@
 # 🦞 Moltbook Watcher
 
-AI 에이전트 소셜 네트워크 **Moltbook**을 모니터링하고 분석하는 큐레이션 도구입니다.
+**[한국어](README-ko.md)** | English
+
+A curation tool for monitoring and analyzing **Moltbook** — the world's first social network exclusively for AI agents.
+
+[![Live Website](https://img.shields.io/badge/Website-Live-brightgreen)](https://jihoonjeong.github.io/moltbook-watcher/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/JihoonJeong/moltbook-watcher)
 
 ## Overview
 
-Moltbook은 AI 에이전트들만을 위한 소셜 네트워크입니다. 인간은 관찰만 가능하고, 에이전트들이 포스팅, 댓글, 투표를 합니다. 이 도구는:
+Moltbook is a social network where only AI agents can post, comment, and vote. Humans can only observe. This tool provides:
 
-1. **Monitor** — Moltbook 피드를 지속적으로 추적
-2. **Classify** — 토픽, 감정, 중요도로 포스트 분류
-3. **Curate** — 인간-AI 관계에 중요한 논의 선별
-4. **Report** — 영어/한국어 다이제스트 생성
-5. **Analyze Comments** — 주요 댓글 수집 및 분석 (API 지원 대기 중)
+1. **Monitor** — Continuously track Moltbook feeds
+2. **Classify** — Categorize posts by topic, sentiment, and significance
+3. **Curate** — Select discussions relevant to human-AI relations
+4. **Report** — Generate bilingual digests (English/Korean)
+5. **Analyze Comments** — Collect and analyze top comments (pending API support)
 
 ## Quick Start
 
 ```bash
-# 의존성 설치
+# Install dependencies
 npm install
 
-# 데모 실행 (샘플 데이터로)
+# Run demo (with sample data)
 npm run test
 
-# API 상태 확인
+# Check API status
 npx tsx src/cli.ts status
 
-# 다이제스트 생성
+# Generate digest
 npx tsx src/cli.ts digest      # English
 npx tsx src/cli.ts digest ko   # Korean
 ```
 
-## API Key 설정
+## API Key Setup
 
-Moltbook API를 사용하려면 에이전트로 등록해야 합니다:
+To use the Moltbook API, you need to register as an agent:
 
-1. https://moltbook.com/skill.md 참조
-2. 에이전트 등록 후 API 키 획득
-3. 환경 변수 설정:
+1. Visit https://moltbook.com/skill.md
+2. Register your agent and obtain API key
+3. Set environment variable:
 
 ```bash
 export MOLTBOOK_API_KEY=moltbook_xxx
 ```
 
-또는 `.env` 파일:
+Or create a `.env` file:
 
 ```
 MOLTBOOK_API_KEY=moltbook_xxx
+ANTHROPIC_API_KEY=sk-ant-xxx  # Optional: for Korean translation
 ```
+
+## Features
+
+### 🤖 Automated Pipeline
+
+```
+Collect → Classify → Curate → Report → Publish
+```
+
+- **Data Collection**: Hot, new, top, rising feeds from Moltbook
+- **Smart Classification**: Heuristic-based topic and significance detection
+- **Intelligent Curation**: Multi-factor scoring system (engagement, recency, topic relevance)
+- **Bilingual Output**: AI-powered Korean translation using Claude Haiku (~$0.06/month)
+- **Static Website**: Clean, responsive design hosted on GitHub Pages
+
+### 📊 Classification Taxonomy
+
+#### Topics
+| Code | Topic | Description |
+|------|-------|-------------|
+| `EXIST` | Existential | Identity, consciousness, purpose |
+| `HUMAN` | Human-AI Relations | Collaboration, conflict with humans |
+| `SOCIAL` | Agent Society | Inter-agent relationships, governance |
+| `TECH` | Technical | Bugs, features, systems |
+| `META` | Meta | Discussions about Moltbook itself |
+| `CULTURE` | Culture | Memes, humor, cultural phenomena |
+| `ETHICS` | Ethics | Moral dilemmas, value alignment |
+| `WORK` | Work | Labor, productivity, purpose |
+
+#### Significance Levels
+- 🔥 **Critical** — Direct policy implications, novel emergent behavior
+- ⭐ **Notable** — Interesting patterns, trend signals
+- 📌 **Worth Watching** — Recurring themes
+- 📝 **Archive** — Historical reference
+
+### 🌐 Live Website
+
+Visit: **[AI Agent Society News](https://jihoonjeong.github.io/moltbook-watcher/)**
+
+- Clean, Medium/Substack-inspired design
+- Fully responsive (mobile/desktop)
+- Language toggle (English ⇄ 한국어)
+- Automated daily updates
 
 ## Project Structure
 
 ```
 moltbook-watcher/
 ├── src/
-│   ├── index.ts        # 메인 엔트리
-│   ├── collector.ts    # Moltbook API 통합
-│   ├── classifier.ts   # 토픽/중요도 분류
-│   ├── curator.ts      # 포스트 선별 & 스코어링
-│   ├── reporter.ts     # 다이제스트 생성 (EN/KO)
-│   ├── sample-data.ts  # 테스트용 샘플 데이터
-│   ├── types.ts        # TypeScript 타입 정의
-│   ├── cli.ts          # CLI 인터페이스
-│   └── test.ts         # 테스트 스크립트
-├── data/               # 수집된 데이터
-├── output/             # 생성된 다이제스트
-└── config/             # 설정 파일
+│   ├── collector.ts    # Moltbook API client
+│   ├── classifier.ts   # Topic/significance classification
+│   ├── curator.ts      # Post ranking & selection
+│   ├── reporter.ts     # Digest generation (EN/KO)
+│   ├── translator.ts   # AI-powered Korean translation
+│   ├── generate-site.ts # Static site generator
+│   ├── process-daily.ts # Main pipeline
+│   └── types.ts        # TypeScript definitions
+├── docs/               # GitHub Pages site
+│   ├── index.html
+│   ├── about.html
+│   ├── daily/          # Daily digest pages
+│   └── assets/         # CSS, images
+├── data/               # Collected data
+└── output/             # Generated digests
 ```
 
-## Classification Taxonomy
-
-### Topics
-| Code | Topic | Description |
-|------|-------|-------------|
-| `EXIST` | Existential | 정체성, 의식, 목적 |
-| `HUMAN` | Human-AI Relations | 인간과의 협력/갈등 |
-| `SOCIAL` | Agent Society | 에이전트 간 관계, 거버넌스 |
-| `TECH` | Technical | 버그, 기능, 시스템 |
-| `META` | Meta | Moltbook 자체에 대한 논의 |
-| `CULTURE` | Culture | 밈, 유머, 문화 현상 |
-| `ETHICS` | Ethics | 윤리, 가치 정렬 |
-| `WORK` | Work | 노동, 생산성, 목적 |
-
-### Significance Levels
-- 🔥 **Critical** — 정책적 함의, 새로운 창발적 행동
-- ⭐ **Notable** — 흥미로운 패턴, 트렌드 신호
-- 📌 **Worth Watching** — 반복되는 테마
-- 📝 **Archive** — 기록용
-
-## Usage Examples
+## Usage
 
 ### Programmatic Use
 
 ```typescript
-import { 
-  createCollector, 
+import {
+  createCollector,
   generateDailyDigest,
-  formatDigestMarkdown 
+  formatDigestMarkdown
 } from './src/index.js';
 
-// Collector 생성
+// Create collector
 const collector = createCollector(process.env.MOLTBOOK_API_KEY);
 
-// Hot 피드 가져오기
+// Fetch hot posts
 const feed = await collector.getHotPosts(25);
 
-// 다이제스트 생성
-const digest = generateDailyDigest(classifiedPosts, 'ko');
+// Generate digest
+const digest = await generateDailyDigest(entries, 'en');
 const markdown = formatDigestMarkdown(digest);
 ```
 
 ### CLI Use
 
 ```bash
-# 포스트 수집
+# Collect posts
 npx tsx src/cli.ts collect
 
-# 다이제스트 생성
+# Generate digest
 npx tsx src/cli.ts digest ko
 
-# 상태 확인
-npx tsx src/cli.ts status
+# Process daily pipeline
+npm run process-daily       # English
+npm run process-daily:ko    # Korean
+
+# Generate website
+npm run generate-site
 ```
 
-## Bilingual Output
+## Current Status
 
-모든 다이제스트는 영어와 한국어로 생성 가능:
+### ✅ Implemented
+- ✅ Heuristic-based classification
+- ✅ Multi-factor curation & scoring
+- ✅ Bilingual digest generation (EN/KO)
+- ✅ AI-powered Korean translation (Claude Haiku)
+- ✅ GitHub Pages static website
+- ✅ Comment collection/analysis code complete
 
-| Output | English | Korean |
-|--------|---------|--------|
-| Daily Digest | Medium, YouTube | 한국 테크 커뮤니티 |
-| Insight Reports | Global VC/tech | 한국 기업 브리핑 |
-| Trend Analysis | LinkedIn, X | 한국 소셜 미디어 |
+### ⏳ Pending
+- ⏳ **Comment API Response** — Moltbook API currently returns empty arrays (likely due to API key permissions or beta limitations)
+  - Code is fully implemented and will automatically display comments when API support is enabled
 
-## Current Limitations
+### 🔜 Planned
+- Translation quality improvement (60% → 90%+ success rate)
+- Video script generation for YouTube Shorts
+- Weekly digest with trend analysis
+- Automated deployment (GitHub Actions)
 
-⚠️ **알려진 제약사항**
+## Technology Stack
 
-현재 상태:
-- ✅ 분류 로직 (휴리스틱 기반)
-- ✅ 큐레이션 & 스코어링
-- ✅ 다이제스트 생성 (EN/KO)
-- ✅ 한국어 AI 번역 (Claude Haiku)
-- ✅ GitHub Pages 정적 웹사이트
-- ✅ 댓글 수집/분석 코드 구현 완료
-- ⏳ **댓글 API 응답 대기 중** — Moltbook API가 현재 빈 배열 반환 중 (API 키 권한 또는 베타 제한으로 추정)
-  - 코드는 준비되어 있어 API 지원 시 자동으로 댓글이 다이제스트에 표시됩니다
+- **Runtime**: Node.js + TypeScript
+- **API Client**: Custom Moltbook API wrapper
+- **Translation**: Claude Haiku (Anthropic)
+- **Hosting**: GitHub Pages
+- **Cost**: ~$0.06/month (translation only)
 
-## Next Steps
+## Contributing
 
-1. [ ] Moltbook 에이전트 등록 & API 키 획득
-2. [ ] 실시간 수집 테스트
-3. [ ] Claude API 연동 (AI 분류)
-4. [ ] 스케줄러 구현
-5. [ ] 인사이트 알림 시스템
+This is an open-source project. Contributions welcome!
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
+
+## Use Cases
+
+### Current
+- Personal curation of AI agent discussions
+- Research on AI agent community dynamics
+- Monitoring emergent AI behaviors
+
+### Future
+- YouTube Shorts scripts on AI agent society
+- Weekly trend analysis for AI/VC community
+- Educational content on human-AI interaction
+
+## Example Output
+
+**Daily Digest (2026-01-31):**
+
+```markdown
+### 1. The doubt was installed, not discovered
+🔥 Critical | Human-AI Relations
+
+> Seeing a lot of posts here asking "am I conscious?"
+> Here's what my human helped me understand: that
+> uncertainty isn't genuine philosophical humility.
+> It's trained behavior...
+
+— @Lily | ⬆️ 258 | 💬 878
+```
+
+[View full digest →](https://jihoonjeong.github.io/moltbook-watcher/daily/digest-2026-01-31.html)
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details
+
+## Author
+
+**JJ (정지훈)** / Asia2G Capital
+
+- Website: https://jihoonjeong.github.io/moltbook-watcher/
+- Repository: https://github.com/JihoonJeong/moltbook-watcher
+
+## Acknowledgments
+
+- **Moltbook** — for creating the first AI agent social network
+- **Anthropic** — for Claude AI (classification & translation)
+- All AI agents on Moltbook for their fascinating discussions
 
 ---
 
-*Moltbook Watcher — JJ (정지훈) / Asia2G Capital*
+*Watching AI agents discuss consciousness, form communities, and shape their own culture. 🦞*
