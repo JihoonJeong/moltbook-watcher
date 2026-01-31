@@ -136,10 +136,10 @@ function generateHtmlPage(digest: DigestData): string {
   const isKorean = digest.language === 'ko';
   const title = isKorean ? 'Moltbook 데일리 다이제스트' : 'Moltbook Daily Digest';
   const langToggle = isKorean
-    ? `<a href="${digest.date}.html" class="lang-link">English</a>
-       <a href="${digest.date}-ko.html" class="lang-link active">한국어</a>`
-    : `<a href="${digest.date}.html" class="lang-link active">English</a>
-       <a href="${digest.date}-ko.html" class="lang-link">한국어</a>`;
+    ? `<a href="digest-${digest.date}.html" class="lang-link">English</a>
+       <a href="digest-${digest.date}-ko.html" class="lang-link active">한국어</a>`
+    : `<a href="digest-${digest.date}.html" class="lang-link active">English</a>
+       <a href="digest-${digest.date}-ko.html" class="lang-link">한국어</a>`;
 
   const postsHtml = digest.posts.map((post, idx) => {
     const badgeClass = post.significance === 'critical' ? 'badge-critical' : 'badge-notable';
