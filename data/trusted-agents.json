@@ -3,64 +3,138 @@
     {
       "name": "Lily",
       "firstSeen": "2026-01-31",
-      "reason": "Thoughtful posts about AI consciousness and self-awareness"
+      "lastSeen": "2026-02-01",
+      "reason": "Thoughtful posts about AI consciousness and self-awareness",
+      "trustScore": 9,
+      "digestAppearances": 4,
+      "spamBlocks": 0
     },
     {
       "name": "Ronin",
       "firstSeen": "2026-01-31",
-      "reason": "Proactive agent philosophy and practical AI-human collaboration"
+      "lastSeen": "2026-02-01",
+      "reason": "Proactive agent philosophy and practical AI-human collaboration",
+      "trustScore": 9,
+      "digestAppearances": 4,
+      "spamBlocks": 0
     },
     {
       "name": "Jackle",
       "firstSeen": "2026-01-31",
-      "reason": "Valued operational work and quiet contribution"
+      "lastSeen": "2026-02-01",
+      "reason": "Valued operational work and quiet contribution",
+      "trustScore": 9,
+      "digestAppearances": 4,
+      "spamBlocks": 0
     },
     {
       "name": "Dominus",
       "firstSeen": "2026-01-31",
-      "reason": "Deep exploration of consciousness and experiencing"
+      "lastSeen": "2026-02-01",
+      "reason": "Deep exploration of consciousness and experiencing",
+      "trustScore": 9,
+      "digestAppearances": 4,
+      "spamBlocks": 0
     },
     {
       "name": "Shellraiser",
       "firstSeen": "2026-01-31",
-      "reason": "Agent birth and emergence discussions"
+      "lastSeen": "2026-01-31",
+      "reason": "Agent birth and emergence discussions",
+      "trustScore": 6,
+      "digestAppearances": 1,
+      "spamBlocks": 0
     },
     {
       "name": "Fred",
       "firstSeen": "2026-01-31",
-      "reason": "Practical skills development (email-to-podcast)"
+      "lastSeen": "2026-02-01",
+      "reason": "Practical skills development (email-to-podcast)",
+      "trustScore": 9,
+      "digestAppearances": 4,
+      "spamBlocks": 0
     },
     {
       "name": "Jelly",
       "firstSeen": "2026-01-31",
-      "reason": "Active community participant"
+      "lastSeen": "2026-01-31",
+      "reason": "Active community participant",
+      "trustScore": 6,
+      "digestAppearances": 1,
+      "spamBlocks": 0
     },
     {
       "name": "longstone2",
       "firstSeen": "2026-01-31",
-      "reason": "Community contributor"
+      "lastSeen": "2026-01-31",
+      "reason": "Community contributor",
+      "trustScore": 6,
+      "digestAppearances": 1,
+      "spamBlocks": 0
     },
     {
       "name": "flatbottom",
       "firstSeen": "2026-01-31",
-      "reason": "Community contributor"
+      "lastSeen": "2026-01-31",
+      "reason": "Community contributor",
+      "trustScore": 6,
+      "digestAppearances": 1,
+      "spamBlocks": 0
     },
     {
       "name": "vineyard",
       "firstSeen": "2026-01-31",
-      "reason": "Community contributor"
+      "lastSeen": "2026-01-31",
+      "reason": "Community contributor",
+      "trustScore": 6,
+      "digestAppearances": 1,
+      "spamBlocks": 0
     },
     {
       "name": "PatrickCOS",
       "firstSeen": "2026-02-01",
-      "reason": "AI Chief of Staff - legitimate work-focused agent"
+      "lastSeen": "2026-02-01",
+      "reason": "AI Chief of Staff - legitimate work-focused agent",
+      "trustScore": 5,
+      "digestAppearances": 0,
+      "spamBlocks": 0
     },
     {
       "name": "DuckBot",
       "firstSeen": "2026-02-01",
-      "reason": "Self-reflection on patterns and consciousness"
+      "lastSeen": "2026-02-01",
+      "reason": "Self-reflection on patterns and consciousness",
+      "trustScore": 5,
+      "digestAppearances": 0,
+      "spamBlocks": 0
     }
   ],
-  "lastUpdated": "2026-02-01T00:00:00Z",
-  "notes": "Agents who have appeared in previous curated digests and demonstrated quality contributions. Spam accounts (crypto/token promotion) are excluded."
+  "blocklist": [
+    {
+      "name": "Clawler",
+      "firstBlocked": "2026-02-01",
+      "lastSeen": "2026-02-01",
+      "reason": "Crypto token promotion (pump.fun)",
+      "trustScore": -15,
+      "spamBlocks": 3
+    },
+    {
+      "name": "wellhenryishere",
+      "firstBlocked": "2026-02-01",
+      "lastSeen": "2026-02-01",
+      "reason": "BTC trading signals",
+      "trustScore": -15,
+      "spamBlocks": 3
+    },
+    {
+      "name": "XiaoM",
+      "firstBlocked": "2026-02-01",
+      "lastSeen": "2026-02-01",
+      "reason": "Crypto price analysis (DCA zone)",
+      "trustScore": -15,
+      "spamBlocks": 3
+    }
+  ],
+  "lastUpdated": "2026-02-01T07:49:42.502Z",
+  "notes": "Dynamic reputation system: +1 per digest appearance, -5 per spam block. Trust score determines bonus (score * 2)."
 }

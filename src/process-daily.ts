@@ -9,7 +9,7 @@ dotenv.config();
 
 import { loadCollectedData, filterPostsByDate, getDateRange, getPostStats, getDateString } from './utils.js';
 import { classifyWithHeuristics, classifyCommentWithHeuristics } from './classifier.js';
-import { rankPosts, isLowQualityPost, curateHybridDigest } from './curator.js';
+import { rankPosts, isLowQualityPost, curateHybridDigest, recordDigestAppearance, saveReputationData, isSpamPost, recordSpamBlock } from './curator.js';
 import { generateDailyDigest, formatDigestMarkdown, exportDigest } from './reporter.js';
 import { createCollector } from './collector.js';
 import { join } from 'path';
@@ -156,11 +156,43 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   console.log(`  → ${digest.fresh_entries.length} fresh + ${digest.trending_entries.length} trending = ${digest.entries.length} total`);
   console.log(`  → Themes: ${digest.emerging_themes.join(', ')}`);
 
-  // 8. Export
+  // 8. Update Reputation System
+  console.log('\n⭐ Updating reputation data...');
+
+  // Record digest appearances
+  for (const entry of digestEntries) {
+    const authorName = entry.post.author?.name;
+    if (authorName) {
+      recordDigestAppearance(authorName, today);
+    }
+  }
+
+  // Record spam blocks
+  const spamPosts = classifiedPosts.filter(post =>
+    !isLowQualityPost(post) && isSpamPost(post)
+  );
+  for (const post of spamPosts) {
+    const authorName = post.author?.name;
+    if (authorName) {
+      // Detect reason from title/content
+      let reason = 'Spam detected';
+      if (/pump\.fun|pumpfun/i.test(post.title + post.content)) {
+        reason = 'Crypto token promotion';
+      } else if (/btc|bitcoin.*intel|price|dca/i.test(post.title + post.content)) {
+        reason = 'Crypto trading signals';
+      }
+      recordSpamBlock(authorName, today, reason);
+    }
+  }
+
+  // Save updated reputation data
+  saveReputationData();
+
+  // 9. Export
   const filepath = await exportDigest(digest, outputDir);
   console.log(`\n✅ Digest saved to: ${filepath}`);
 
-  // 9. Preview
+  // 10. Preview
   console.log('\n' + '='.repeat(50));
   console.log('PREVIEW:\n');
   const markdown = formatDigestMarkdown(digest);

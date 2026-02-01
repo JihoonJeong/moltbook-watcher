@@ -17,41 +17,156 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// --- Trusted Agents ---
+// --- Trusted Agents & Reputation System ---
 
-interface TrustedAgent {
+interface AgentReputation {
   name: string;
   firstSeen: string;
+  lastSeen: string;
   reason: string;
+  trustScore: number;
+  digestAppearances: number;
+  spamBlocks: number;
 }
 
-interface TrustedAgentsData {
-  agents: TrustedAgent[];
+interface BlockedAgent {
+  name: string;
+  firstBlocked: string;
+  lastSeen: string;
+  reason: string;
+  trustScore: number;
+  spamBlocks: number;
+}
+
+interface ReputationData {
+  agents: AgentReputation[];
+  blocklist: BlockedAgent[];
   lastUpdated: string;
   notes: string;
 }
 
-let trustedAgentsCache: Set<string> | null = null;
+let reputationDataCache: ReputationData | null = null;
+let reputationDataPath: string | null = null;
 
-function loadTrustedAgents(): Set<string> {
-  if (trustedAgentsCache) return trustedAgentsCache;
+function loadReputationData(): ReputationData {
+  if (reputationDataCache) return reputationDataCache;
 
   try {
-    const dataPath = join(__dirname, '..', 'data', 'trusted-agents.json');
-    const data: TrustedAgentsData = JSON.parse(readFileSync(dataPath, 'utf-8'));
-    trustedAgentsCache = new Set(data.agents.map(a => a.name.toLowerCase()));
-    console.log(`[TRUSTED AGENTS] Loaded ${trustedAgentsCache.size} trusted agents`);
-    return trustedAgentsCache;
+    reputationDataPath = join(__dirname, '..', 'data', 'trusted-agents.json');
+    const data: ReputationData = JSON.parse(readFileSync(reputationDataPath, 'utf-8'));
+    reputationDataCache = data;
+    console.log(`[REPUTATION] Loaded ${data.agents.length} trusted agents, ${data.blocklist?.length || 0} blocked`);
+    return data;
   } catch (error) {
-    console.warn('[TRUSTED AGENTS] Failed to load trusted-agents.json, continuing without trust bonus');
-    trustedAgentsCache = new Set();
-    return trustedAgentsCache;
+    console.warn('[REPUTATION] Failed to load trusted-agents.json, using empty reputation data');
+    reputationDataCache = {
+      agents: [],
+      blocklist: [],
+      lastUpdated: new Date().toISOString(),
+      notes: 'Auto-generated reputation data'
+    };
+    return reputationDataCache;
   }
 }
 
+export function getTrustScore(authorName: string): number {
+  const data = loadReputationData();
+  const agent = data.agents.find(a => a.name.toLowerCase() === authorName.toLowerCase());
+  if (agent) return agent.trustScore;
+
+  const blocked = data.blocklist?.find(b => b.name.toLowerCase() === authorName.toLowerCase());
+  if (blocked) return blocked.trustScore;
+
+  return 0; // Unknown agents have neutral score
+}
+
 export function isTrustedAgent(authorName: string): boolean {
-  const trustedAgents = loadTrustedAgents();
-  return trustedAgents.has(authorName.toLowerCase());
+  return getTrustScore(authorName) > 0;
+}
+
+export function isBlockedAgent(authorName: string): boolean {
+  return getTrustScore(authorName) < 0;
+}
+
+// --- Reputation Updates ---
+
+import { writeFileSync } from 'fs';
+
+export function recordDigestAppearance(authorName: string, date: string): void {
+  const data = loadReputationData();
+  const agentName = authorName.trim();
+
+  let agent = data.agents.find(a => a.name.toLowerCase() === agentName.toLowerCase());
+
+  if (agent) {
+    // Existing agent: increment
+    agent.digestAppearances += 1;
+    agent.trustScore += 1;
+    agent.lastSeen = date;
+  } else {
+    // New agent: create entry
+    data.agents.push({
+      name: agentName,
+      firstSeen: date,
+      lastSeen: date,
+      reason: 'Featured in digest',
+      trustScore: 5, // Starting score
+      digestAppearances: 1,
+      spamBlocks: 0
+    });
+    console.log(`[REPUTATION] New agent added: ${agentName} (starting score: 5)`);
+  }
+
+  // Update cache
+  reputationDataCache = data;
+}
+
+export function recordSpamBlock(authorName: string, date: string, reason: string): void {
+  const data = loadReputationData();
+  const agentName = authorName.trim();
+
+  // Check if already in blocklist
+  let blocked = data.blocklist?.find(b => b.name.toLowerCase() === agentName.toLowerCase());
+
+  if (blocked) {
+    // Already blocked: increment
+    blocked.spamBlocks += 1;
+    blocked.trustScore -= 5;
+    blocked.lastSeen = date;
+  } else {
+    // New block: add to blocklist
+    if (!data.blocklist) data.blocklist = [];
+    data.blocklist.push({
+      name: agentName,
+      firstBlocked: date,
+      lastSeen: date,
+      reason,
+      trustScore: -5,
+      spamBlocks: 1
+    });
+    console.log(`[REPUTATION] Agent blocked: ${agentName} (reason: ${reason})`);
+
+    // Remove from trusted list if present
+    data.agents = data.agents.filter(a => a.name.toLowerCase() !== agentName.toLowerCase());
+  }
+
+  // Update cache
+  reputationDataCache = data;
+}
+
+export function saveReputationData(): void {
+  if (!reputationDataCache || !reputationDataPath) {
+    console.warn('[REPUTATION] No data to save');
+    return;
+  }
+
+  try {
+    reputationDataCache.lastUpdated = new Date().toISOString();
+    writeFileSync(reputationDataPath, JSON.stringify(reputationDataCache, null, 2), 'utf-8');
+    console.log(`[REPUTATION] Saved reputation data (${reputationDataCache.agents.length} agents, ${reputationDataCache.blocklist?.length || 0} blocked)`);
+  } catch (error) {
+    console.error('[REPUTATION] Failed to save reputation data:', error);
+  }
 }
 
 // --- Curation Filters ---
@@ -261,11 +376,15 @@ export function scorePost(
   const matchingTopics = priorityTopics.filter(t => allTopics.includes(t));
   const topic_relevance = matchingTopics.length * 15;  // Increased from 10 to 15
 
-  // Trusted agent bonus
+  // Dynamic reputation bonus (trustScore * 2)
   const authorName = post.author?.name || '';
-  const trust_bonus = isTrustedAgent(authorName) ? 10 : 0;
+  const trustScore = getTrustScore(authorName);
+  const trust_bonus = trustScore > 0 ? trustScore * 2 : 0;
+
   if (trust_bonus > 0) {
-    console.log(`[TRUST BONUS] +${trust_bonus} for @${authorName}: "${post.title}"`);
+    console.log(`[TRUST BONUS] +${trust_bonus} for @${authorName} (score: ${trustScore}): "${post.title.slice(0, 50)}"`);
+  } else if (trustScore < 0) {
+    console.log(`[BLOCKED] ${authorName} has negative trust score (${trustScore})`);
   }
 
   return {
