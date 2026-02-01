@@ -113,21 +113,18 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   const processPostComments = async (post: ClassifiedPost): Promise<ClassifiedComment[]> => {
     const allComments = await collector.getPostComments(post.id, 'top');
 
-    // Filter: upvotes >= 5 (minimum community validation)
-    const qualityComments = allComments.filter(c => c.upvotes >= 5);
-
-    // Classify
-    const classifiedComments: ClassifiedComment[] = qualityComments
+    // Classify all comments
+    const classifiedComments: ClassifiedComment[] = allComments
       .map(comment => classifyCommentWithHeuristics(comment, post.classification.topic));
 
     // Detect spam comments
     const spamComments = classifiedComments.filter(c => isSpamComment(c));
     allSpamComments.push(...spamComments);
 
-    // Filter out spam
+    // Filter out spam only (no upvotes threshold)
     const nonSpamComments = classifiedComments.filter(c => !isSpamComment(c));
 
-    // Sort and select top 3
+    // Sort by upvotes and guarantee top 3 per post
     const topComments = nonSpamComments
       .sort((a, b) => b.upvotes - a.upvotes)
       .slice(0, 3);
@@ -161,23 +158,78 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   }
 
   console.log(`  → Processed ${freshEntries.length} fresh + ${trendingEntries.length} trending posts`);
-  console.log(`  → Found ${allFeaturedComments.length} featured comments (before diversity filter), ${allSpamComments.length} spam comments`);
 
-  // Apply diversity filter: max 2 comments per agent across the entire digest
+  // Apply diversity filter with per-post guarantee:
+  // 1. Each post gets at least 1 comment (top by upvotes)
+  // 2. Remaining slots distributed with max 2 per agent globally
   const diverseComments: ClassifiedComment[] = [];
   const authorCommentCounts = new Map<string, number>();
+  const postCommentCounts = new Map<string, number>();
 
-  // Sort all comments by upvotes first
+  // First pass: Guarantee 1 comment per post (with agent limit check)
+  for (const entry of [...freshEntries, ...trendingEntries]) {
+    if (entry.top_comments && entry.top_comments.length > 0) {
+      // Try to find a comment from an agent who doesn't already have 2 guaranteed
+      let selectedComment = null;
+
+      for (const comment of entry.top_comments) {
+        const authorName = comment.author?.name || 'Unknown';
+        const currentCount = authorCommentCounts.get(authorName) || 0;
+
+        if (currentCount < 2) {
+          selectedComment = comment;
+          break;
+        }
+      }
+
+      // If we found a comment that respects the limit, add it
+      if (selectedComment) {
+        diverseComments.push(selectedComment);
+        postCommentCounts.set(entry.post.id, 1);
+
+        const authorName = selectedComment.author?.name || 'Unknown';
+        authorCommentCounts.set(authorName, (authorCommentCounts.get(authorName) || 0) + 1);
+        console.log(`[DIVERSITY] Guaranteed: @${authorName} on "${entry.post.title.slice(0, 30)}..." (⬆️ ${selectedComment.upvotes})`);
+      } else {
+        // Fallback: if all top 3 commenters already have 2 featured, still guarantee the top one
+        const topComment = entry.top_comments[0];
+        diverseComments.push(topComment);
+        postCommentCounts.set(entry.post.id, 1);
+
+        const authorName = topComment.author?.name || 'Unknown';
+        authorCommentCounts.set(authorName, (authorCommentCounts.get(authorName) || 0) + 1);
+        console.log(`[DIVERSITY] Guaranteed (fallback): @${authorName} on "${entry.post.title.slice(0, 30)}..." (⬆️ ${topComment.upvotes})`);
+      }
+    }
+  }
+
+  // Second pass: Fill remaining slots (up to 3 per post, max 2 per agent globally)
   const sortedComments = [...allFeaturedComments].sort((a, b) => b.upvotes - a.upvotes);
 
   for (const comment of sortedComments) {
-    const authorName = comment.author?.name || 'Unknown';
-    const currentCount = authorCommentCounts.get(authorName) || 0;
+    // Skip if already added in first pass
+    if (diverseComments.some(c => c.id === comment.id)) {
+      continue;
+    }
 
-    if (currentCount < 2) {
+    const authorName = comment.author?.name || 'Unknown';
+    const currentAuthorCount = authorCommentCounts.get(authorName) || 0;
+
+    // Find which post this comment belongs to
+    const parentEntry = [...freshEntries, ...trendingEntries].find(e =>
+      e.top_comments?.some(c => c.id === comment.id)
+    );
+
+    if (!parentEntry) continue;
+
+    const currentPostCount = postCommentCounts.get(parentEntry.post.id) || 0;
+
+    // Check constraints: max 2 per agent, max 3 per post
+    if (currentAuthorCount < 2 && currentPostCount < 3) {
       diverseComments.push(comment);
-      authorCommentCounts.set(authorName, currentCount + 1);
-    } else {
+      authorCommentCounts.set(authorName, currentAuthorCount + 1);
+      postCommentCounts.set(parentEntry.post.id, currentPostCount + 1);
+    } else if (currentAuthorCount >= 2) {
       console.log(`[DIVERSITY] Skipped comment from @${authorName} (already has 2 featured comments)`);
     }
   }
