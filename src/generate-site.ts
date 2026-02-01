@@ -19,6 +19,7 @@ interface DigestData {
     upvotes: number;
     comments: number;
     excerpt: string;
+    permalink?: string;
     topComments?: Array<{
       author: string;
       upvotes: number;
@@ -121,6 +122,10 @@ function parseDigest(markdown: string, filename: string): DigestData {
     const statsMatch = section.match(/— \*\*@(.+?)\*\* \| ⬆️ (\d+) \| 💬 (\d+)/);
     if (!statsMatch) continue;
 
+    // Extract permalink
+    const permalinkMatch = section.match(/\[📖 .+?\]\((https:\/\/www\.moltbook\.com\/post\/.+?)\)/);
+    const permalink = permalinkMatch ? permalinkMatch[1] : undefined;
+
     // Extract comments if present
     const topComments: DigestData['posts'][0]['topComments'] = [];
     const commentsSection = section.match(/\*\*💬 .+?\*\*\n\n([\s\S]+?)(?=\n\n##|\n\n---|\n\n$|$)/);
@@ -144,6 +149,7 @@ function parseDigest(markdown: string, filename: string): DigestData {
       author: statsMatch[1],
       upvotes: parseInt(statsMatch[2]),
       comments: parseInt(statsMatch[3]),
+      permalink,
       topComments: topComments.length > 0 ? topComments : undefined
     });
   }
@@ -205,6 +211,16 @@ function generateHtmlPage(digest: DigestData): string {
       `
       : '';
 
+    const permalinkHtml = post.permalink
+      ? `
+        <div style="margin-top: 1rem;">
+          <a href="${post.permalink}" target="_blank" class="moltbook-link">
+            📖 ${isKorean ? 'Moltbook에서 전체 토론 보기' : 'Read full discussion on Moltbook'} →
+          </a>
+        </div>
+      `
+      : '';
+
     return `
       <div class="post-card">
         <div class="post-header">
@@ -224,6 +240,7 @@ function generateHtmlPage(digest: DigestData): string {
             <span>💬 ${post.comments.toLocaleString()}</span>
           </div>
         </div>
+        ${permalinkHtml}
         ${commentsHtml}
       </div>
     `;

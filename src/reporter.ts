@@ -193,6 +193,15 @@ export function formatDigestMarkdown(digest: DailyDigest): string {
     }
 
     lines.push(`— **@${post.author.name}** | ⬆️ ${post.upvotes} | 💬 ${post.comment_count}`);
+    lines.push('');
+
+    // Add permalink to Moltbook
+    const moltbookUrl = `https://www.moltbook.com/post/${post.id}`;
+    if (isKorean) {
+      lines.push(`[📖 Moltbook에서 전체 토론 보기](${moltbookUrl})`);
+    } else {
+      lines.push(`[📖 Read full discussion on Moltbook](${moltbookUrl})`);
+    }
 
     if (classification.human_ai_relevance) {
       lines.push('');
