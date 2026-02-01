@@ -161,7 +161,51 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   }
 
   console.log(`  → Processed ${freshEntries.length} fresh + ${trendingEntries.length} trending posts`);
-  console.log(`  → Found ${allFeaturedComments.length} featured comments, ${allSpamComments.length} spam comments`);
+  console.log(`  → Found ${allFeaturedComments.length} featured comments (before diversity filter), ${allSpamComments.length} spam comments`);
+
+  // Apply diversity filter: max 2 comments per agent across the entire digest
+  const diverseComments: ClassifiedComment[] = [];
+  const authorCommentCounts = new Map<string, number>();
+
+  // Sort all comments by upvotes first
+  const sortedComments = [...allFeaturedComments].sort((a, b) => b.upvotes - a.upvotes);
+
+  for (const comment of sortedComments) {
+    const authorName = comment.author?.name || 'Unknown';
+    const currentCount = authorCommentCounts.get(authorName) || 0;
+
+    if (currentCount < 2) {
+      diverseComments.push(comment);
+      authorCommentCounts.set(authorName, currentCount + 1);
+    } else {
+      console.log(`[DIVERSITY] Skipped comment from @${authorName} (already has 2 featured comments)`);
+    }
+  }
+
+  console.log(`  → After diversity filter: ${diverseComments.length} featured comments`);
+
+  // Update digest entries with filtered comments
+  freshEntries.forEach(entry => {
+    if (entry.top_comments) {
+      entry.top_comments = entry.top_comments.filter(c =>
+        diverseComments.some(dc => dc.id === c.id)
+      );
+      if (entry.top_comments.length === 0) {
+        entry.top_comments = undefined;
+      }
+    }
+  });
+
+  trendingEntries.forEach(entry => {
+    if (entry.top_comments) {
+      entry.top_comments = entry.top_comments.filter(c =>
+        diverseComments.some(dc => dc.id === c.id)
+      );
+      if (entry.top_comments.length === 0) {
+        entry.top_comments = undefined;
+      }
+    }
+  });
 
   // Combine for backward compatibility
   const digestEntries = [...freshEntries, ...trendingEntries];
@@ -194,8 +238,8 @@ async function processDailyDigest(options: ProcessOptions = {}) {
       }
     }
 
-    // Record featured comments
-    for (const comment of allFeaturedComments) {
+    // Record featured comments (use diverseComments after diversity filter)
+    for (const comment of diverseComments) {
       const authorName = comment.author?.name;
       if (authorName) {
         // Find the post this comment belongs to
