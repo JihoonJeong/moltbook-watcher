@@ -10,7 +10,8 @@ dist/
 
 # Data and outputs
 data/
-output/
+output/*
+!output/digest/
 
 # OS files
 .DS_Store
