@@ -190,7 +190,8 @@ export function formatDigestMarkdown(digest: DailyDigest): string {
       entryLines.push('');
     }
 
-    entryLines.push(`— **@${post.author.name}** | ⬆️ ${post.upvotes} | 💬 ${post.comment_count}`);
+    const authorName = post.author?.name || 'Unknown';
+    entryLines.push(`— **@${authorName}** | ⬆️ ${post.upvotes} | 💬 ${post.comment_count}`);
     entryLines.push('');
 
     const moltbookUrl = `https://www.moltbook.com/post/${post.id}`;
@@ -222,7 +223,8 @@ export function formatDigestMarkdown(digest: DailyDigest): string {
         const commentPreview = comment.content.length > 200
           ? comment.content.slice(0, 197) + '...'
           : comment.content;
-        entryLines.push(`> *@${comment.author.name}* (⬆️ ${comment.upvotes}): ${commentPreview.replace(/\n/g, ' ')}`);
+        const commentAuthor = comment.author?.name || 'Unknown';
+        entryLines.push(`> *@${commentAuthor}* (⬆️ ${comment.upvotes}): ${commentPreview.replace(/\n/g, ' ')}`);
         entryLines.push('');
       }
     }
@@ -323,7 +325,8 @@ export function generateQuickSummary(
     if (criticalPosts.length > 0) {
       summary += `**주요 긴급 포스트:**\n`;
       for (const post of criticalPosts.slice(0, 3)) {
-        summary += `• ${post.title} (@${post.author.name})\n`;
+        const authorName = post.author?.name || 'Unknown';
+        summary += `• ${post.title} (@${authorName})\n`;
       }
     }
 
@@ -336,7 +339,8 @@ export function generateQuickSummary(
     if (criticalPosts.length > 0) {
       summary += `**Top Critical Posts:**\n`;
       for (const post of criticalPosts.slice(0, 3)) {
-        summary += `• ${post.title} (@${post.author.name})\n`;
+        const authorName = post.author?.name || 'Unknown';
+        summary += `• ${post.title} (@${authorName})\n`;
       }
     }
 

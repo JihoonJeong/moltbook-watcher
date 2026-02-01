@@ -251,12 +251,13 @@ function generateHighlight(post: ClassifiedPost): string {
   };
 
   const emoji = significanceEmoji[classification.significance];
-  
+
   // Use summary if available, otherwise truncate title
   const text = classification.summary || post.title;
   const truncated = text.length > 100 ? text.slice(0, 97) + '...' : text;
 
-  return `${emoji} ${truncated} — @${author.name} (${upvotes}↑)`;
+  const authorName = author?.name || 'Unknown';
+  return `${emoji} ${truncated} — @${authorName} (${upvotes}↑)`;
 }
 
 // --- Extract Themes ---
