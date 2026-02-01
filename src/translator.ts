@@ -59,11 +59,14 @@ Title: ${request.title}
 Content:
 ${contentToTranslate}
 
-Return ONLY a JSON object with this exact format:
-{
-  "title": "translated title in Korean",
-  "content": "translated content in Korean"
-}`;
+IMPORTANT: Return ONLY a valid JSON object, nothing else. No explanations, no markdown code blocks.
+Use this exact format:
+{"title":"translated title in Korean","content":"translated content in Korean"}
+
+Make sure to:
+- Escape special characters properly (quotes, newlines, etc.)
+- Do not include any text before or after the JSON object
+- Keep the JSON in a single line if possible`;
 
   try {
     const message = await getClient().messages.create({
@@ -79,18 +82,45 @@ Return ONLY a JSON object with this exact format:
       ? message.content[0].text
       : '';
 
-    // Extract JSON from response
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    // Extract JSON from response (handle markdown code blocks too)
+    let jsonString = responseText.trim();
+
+    // Remove markdown code blocks if present
+    if (jsonString.startsWith('```')) {
+      jsonString = jsonString.replace(/^```(?:json)?\s*\n/, '').replace(/\n```\s*$/, '');
+    }
+
+    // Extract JSON object
+    const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.warn('Failed to parse translation response, using original');
+      console.warn('Failed to find JSON in translation response, using original');
       return request;
     }
 
-    // Clean up JSON string - escape newlines and control characters
-    let jsonString = jsonMatch[0];
-    jsonString = jsonString.replace(/[\n\r\t]/g, ' ').replace(/\s+/g, ' ');
+    jsonString = jsonMatch[0];
 
-    const translated = JSON.parse(jsonString);
+    // Try to parse - if it fails, attempt to fix common issues
+    let translated;
+    try {
+      translated = JSON.parse(jsonString);
+    } catch (parseError) {
+      // Try cleaning up the JSON string
+      try {
+        // Remove control characters except those in strings
+        jsonString = jsonString
+          .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')  // Remove control chars
+          .replace(/\n/g, '\\n')                         // Escape newlines
+          .replace(/\r/g, '\\r')                         // Escape carriage returns
+          .replace(/\t/g, '\\t');                        // Escape tabs
+
+        translated = JSON.parse(jsonString);
+      } catch (retryError) {
+        console.warn('Failed to parse translation JSON after cleanup, using original');
+        console.warn('Parse error:', retryError);
+        console.warn('JSON string:', jsonString.slice(0, 200));
+        return request;
+      }
+    }
 
     // Cache the result
     translationCache.set(cacheKey, JSON.stringify(translated));
