@@ -52,6 +52,14 @@ interface AgentReputation {
   featuredPosts?: FeaturedPost[];
 }
 
+interface BlockedPost {
+  id: string;
+  title: string;
+  date: string;
+  blockedDate: string;
+  reason: string;
+}
+
 interface BlockedAgent {
   name: string;
   firstBlocked: string;
@@ -59,6 +67,7 @@ interface BlockedAgent {
   reason: string;
   trustScore: number;
   spamBlocks: number;
+  blockedPosts?: BlockedPost[];
 }
 
 interface ReputationData {

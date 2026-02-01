@@ -187,7 +187,11 @@ async function processDailyDigest(options: ProcessOptions = {}) {
         } else if (/btc|bitcoin.*intel|price|dca/i.test(post.title + post.content)) {
           reason = 'Crypto trading signals';
         }
-        recordSpamBlock(authorName, today, reason);
+        recordSpamBlock(authorName, today, reason, {
+          id: post.id,
+          title: post.title,
+          created_at: post.created_at
+        });
       }
     }
 

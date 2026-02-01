@@ -27,6 +27,14 @@ interface FeaturedPost {
   digestDate: string;
 }
 
+interface BlockedPost {
+  id: string;
+  title: string;
+  date: string;
+  blockedDate: string;
+  reason: string;
+}
+
 interface AgentReputation {
   name: string;
   firstSeen: string;
@@ -45,6 +53,7 @@ interface BlockedAgent {
   reason: string;
   trustScore: number;
   spamBlocks: number;
+  blockedPosts?: BlockedPost[];
 }
 
 interface ReputationData {
@@ -181,7 +190,16 @@ export function recordDigestAppearance(
   reputationDataCache = data;
 }
 
-export function recordSpamBlock(authorName: string, date: string, reason: string): void {
+export function recordSpamBlock(
+  authorName: string,
+  date: string,
+  reason: string,
+  postInfo?: {
+    id: string;
+    title: string;
+    created_at: string;
+  }
+): void {
   const data = loadReputationData();
   const agentName = authorName.trim();
 
@@ -189,22 +207,65 @@ export function recordSpamBlock(authorName: string, date: string, reason: string
   let blocked = data.blocklist?.find(b => b.name.toLowerCase() === agentName.toLowerCase());
 
   if (blocked) {
-    // Already blocked: increment
-    blocked.spamBlocks += 1;
-    blocked.trustScore -= 5;
+    // Already blocked: check for duplicate spam post
     blocked.lastSeen = date;
+
+    // Add blocked post if provided (check for duplicates)
+    if (postInfo) {
+      if (!blocked.blockedPosts) blocked.blockedPosts = [];
+
+      // Check if this post ID already exists
+      const alreadyBlocked = blocked.blockedPosts.some(p => p.id === postInfo.id);
+
+      if (!alreadyBlocked) {
+        // New spam post: add it
+        blocked.blockedPosts.unshift({
+          id: postInfo.id,
+          title: postInfo.title,
+          date: postInfo.created_at,
+          blockedDate: date,
+          reason
+        });
+
+        // Sync spamBlocks with unique blocked posts count
+        blocked.spamBlocks = blocked.blockedPosts.length;
+        blocked.trustScore = -5 * blocked.spamBlocks;
+
+        console.log(`[REPUTATION] New spam from @${agentName}: "${postInfo.title.slice(0, 40)}..." (${blocked.spamBlocks} total)`);
+      } else {
+        console.log(`[REPUTATION] Duplicate spam skipped for @${agentName}: "${postInfo.title.slice(0, 40)}..." (already blocked)`);
+      }
+    }
   } else {
     // New block: add to blocklist
     if (!data.blocklist) data.blocklist = [];
-    data.blocklist.push({
+
+    const newBlocked: BlockedAgent = {
       name: agentName,
       firstBlocked: date,
       lastSeen: date,
       reason,
       trustScore: -5,
-      spamBlocks: 1
-    });
-    console.log(`[REPUTATION] Agent blocked: ${agentName} (reason: ${reason})`);
+      spamBlocks: 0
+    };
+
+    // Add blocked post if provided
+    if (postInfo) {
+      newBlocked.blockedPosts = [{
+        id: postInfo.id,
+        title: postInfo.title,
+        date: postInfo.created_at,
+        blockedDate: date,
+        reason
+      }];
+
+      // Sync spamBlocks with post count
+      newBlocked.spamBlocks = 1;
+      newBlocked.trustScore = -5;
+    }
+
+    data.blocklist.push(newBlocked);
+    console.log(`[REPUTATION] Agent blocked: ${agentName} (reason: ${reason}, score: ${newBlocked.trustScore})`);
 
     // Remove from trusted list if present
     data.agents = data.agents.filter(a => a.name.toLowerCase() !== agentName.toLowerCase());
