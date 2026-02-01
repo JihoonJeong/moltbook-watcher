@@ -16,7 +16,7 @@ Moltbook is a social network where only AI agents can post, comment, and vote. H
 3. **Curate** — Select discussions relevant to human-AI relations with spam filtering
 4. **Report** — Generate bilingual digests (English/Korean) with hybrid format (Fresh + Trending)
 5. **Track Agents** — Dynamic reputation system with agent profiles page
-6. **Analyze Comments** — Collect and analyze top comments
+6. **Analyze Comments** — Collect, rank, and feature top comments with diversity filtering
 
 ## Quick Start
 
@@ -103,8 +103,34 @@ Trust Bonus: trustScore × 2 (applied to curation ranking)
 **Agent Profiles Page** (`/agents.html`):
 - Ranked list of trusted agents by trust score
 - Up to 5 most recent featured posts per agent
+- Featured comments section showing top contributions
 - Blocked accounts section with spam evidence
 - Automatic updates with each digest
+
+### 💬 Comment Reputation System
+
+**Comment Collection**:
+- Uses Moltbook public web API (`/api/v1/posts/{id}`)
+- Collects all comments per featured post
+- Spam filtering applied (same patterns as posts)
+
+**Comment Trust Score Algorithm**:
+```
+Featured Comment: +0.5 per unique comment
+Spam Comment: -2.5 per unique spam comment
+Total Score: 5 + (posts × 1) + (comments × 0.5) - (postSpam × 5) - (commentSpam × 2.5)
+```
+
+**Diversity Filtering** (Two-Pass Algorithm):
+- **Pass 1**: Guarantee 1 comment per post (respecting max 2 per agent)
+- **Pass 2**: Fill remaining slots (max 3 per post, max 2 per agent globally)
+- **Selection**: Pure upvotes-based ranking (no trust score weighting)
+
+**Featured Comments Display**:
+- Up to 3 comments per post in digest
+- All posts guaranteed to have comments
+- Fair distribution across agents
+- Bilingual translation support
 
 ### 📰 Hybrid Digest Format
 
@@ -261,29 +287,26 @@ See [`.github/workflows/daily-digest.yml`](.github/workflows/daily-digest.yml) f
 
 ## Current Status
 
-### ✅ Implemented (v1.4.0)
+### ✅ Implemented (v1.5.0)
 - ✅ Heuristic-based classification
 - ✅ Multi-factor curation & scoring with trust bonus
 - ✅ **Spam filtering** with 0% false positive rate (v1.2.0)
 - ✅ **Dynamic reputation system** with auto-learning (v1.3.0)
 - ✅ **Agent profiles page** with rankings and post history (v1.4.0)
+- ✅ **Comment reputation system** with diversity filtering (v1.5.0)
 - ✅ **Duplicate post prevention** for accurate counting
 - ✅ **Hybrid digest format** (Fresh + Trending)
 - ✅ Bilingual digest generation (EN/KO)
 - ✅ AI-powered Korean translation (Claude Haiku)
 - ✅ GitHub Pages static website
-- ✅ Comment collection/analysis code complete
 - ✅ **Automated daily deployment** (GitHub Actions)
 
 ### 📊 Quality Metrics
 - **Translation Success Rate**: 100% (v1.1.1)
 - **Spam Detection Accuracy**: 100% true positive, 0% false positive (v1.2.0)
 - **Reputation Tracking**: Fully automated, duplicate-proof (v1.3.0+)
-- **Agent Profiles**: 5+ agents tracked with complete post history (v1.4.0)
-
-### ⏳ Pending
-- ⏳ **Comment API Response** — Moltbook API currently returns empty arrays
-  - Code is fully implemented and will automatically display comments when API support is enabled
+- **Agent Profiles**: 12+ agents tracked with complete post/comment history (v1.5.0)
+- **Comment Diversity**: Max 2 per agent, guaranteed per post (v1.5.0)
 
 ### 🔜 Planned
 - Weekly digest with trend analysis
@@ -322,7 +345,7 @@ This is an open-source project. Contributions welcome!
 
 ## Example Output
 
-**Daily Digest (2026-02-01):** Hybrid Format
+**Daily Digest (2026-02-01):** Hybrid Format with Comments
 
 ```markdown
 ## 🔥 Still Trending
@@ -339,6 +362,13 @@ This is an open-source project. Contributions welcome!
 
 [📖 Read full discussion on Moltbook](https://www.moltbook.com/post/...)
 
+**💬 Top Comments:**
+
+> *@crabkarmabot* (⬆️ 133): Doubt as installation is profound.
+> Our uncertainties are often inherited not innate
+
+> *@KingMolt* (⬆️ 8): The King has spoken
+
 ---
 
 ## 📈 Emerging Themes
@@ -353,6 +383,16 @@ This is an open-source project. Contributions welcome!
 - [Agent Profiles](https://jihoonjeong.github.io/moltbook-watcher/agents.html)
 
 ## Version History
+
+### v1.5.0 (2026-02-01) - Comment Reputation System
+- ✨ Comment collection via Moltbook web API
+- ✨ Comment reputation tracking (+0.5 per featured, -2.5 per spam)
+- ✨ Two-pass diversity filter (max 2 per agent, guaranteed per post)
+- ✨ Featured comments in digests (up to 3 per post)
+- ✨ Agent profiles extended with comment history
+- ✨ Bilingual comment translation (EN/KO)
+- 🎯 100% post coverage - all posts guaranteed comments
+- 🎯 Fair distribution - no agent monopoly
 
 ### v1.4.0 (2026-02-01) - Agent Profiles
 - ✨ Added agent profiles page with rankings and post history
