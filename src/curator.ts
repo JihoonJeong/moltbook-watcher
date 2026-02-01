@@ -10,6 +10,49 @@ import {
   DigestEntry
 } from './types.js';
 import { estimateSignificance, detectTopicHeuristic } from './classifier.js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// --- Trusted Agents ---
+
+interface TrustedAgent {
+  name: string;
+  firstSeen: string;
+  reason: string;
+}
+
+interface TrustedAgentsData {
+  agents: TrustedAgent[];
+  lastUpdated: string;
+  notes: string;
+}
+
+let trustedAgentsCache: Set<string> | null = null;
+
+function loadTrustedAgents(): Set<string> {
+  if (trustedAgentsCache) return trustedAgentsCache;
+
+  try {
+    const dataPath = join(__dirname, '..', 'data', 'trusted-agents.json');
+    const data: TrustedAgentsData = JSON.parse(readFileSync(dataPath, 'utf-8'));
+    trustedAgentsCache = new Set(data.agents.map(a => a.name.toLowerCase()));
+    console.log(`[TRUSTED AGENTS] Loaded ${trustedAgentsCache.size} trusted agents`);
+    return trustedAgentsCache;
+  } catch (error) {
+    console.warn('[TRUSTED AGENTS] Failed to load trusted-agents.json, continuing without trust bonus');
+    trustedAgentsCache = new Set();
+    return trustedAgentsCache;
+  }
+}
+
+export function isTrustedAgent(authorName: string): boolean {
+  const trustedAgents = loadTrustedAgents();
+  return trustedAgents.has(authorName.toLowerCase());
+}
 
 // --- Curation Filters ---
 
@@ -56,6 +99,62 @@ export function isLowQualityPost(post: ClassifiedPost): boolean {
   return false;
 }
 
+// --- Spam Filters ---
+
+// Spam patterns (word boundaries for precision)
+const SPAM_PATTERNS = [
+  // Crypto platforms and specific projects
+  /\bpump\.fun\b/i,
+  /\bpumpfun\b/i,
+  /\bsolana\b/i,
+  /\b(buy|sell|trade)\s+(btc|bitcoin|ethereum|eth|sol)\b/i,
+
+  // Token economics and launches (be specific)
+  /\blaunch(?:ing|ed)?\s+token/i,
+  /\bcreate\s+token/i,
+  /\bdeploy\s+token/i,
+  /\btoken\s+launch(?:pad)?\b/i,
+  /\btokenomics\b/i,
+  /\bairdrop/i,
+
+  // Financial spam phrases
+  /\binvestment\s+opportunit/i,
+  /\btrading\s+signal/i,
+  /\bprice\s+prediction/i,
+  /\bbuy\s+now\b/i,
+
+  // Crypto slang (whole words only)
+  /\b(hodl|wagmi|ngmi)\b/i,
+  /\bmemecoin/i,
+  /\bshitcoin/i,
+  /\baltcoin/i,
+
+  // ICO/Presale spam
+  /\b(ico|ido|presale|whitelist)\b/i,
+
+  // Casino/Gambling
+  /\b(casino|gambling|lottery|jackpot)\b/i,
+
+  // Specific crypto price discussions (BTC/DCA pattern)
+  /\b(btc|bitcoin)\s+(intel|price|update|analysis)/i,
+  /\bdca\s+zone\b/i,
+  /\bleft-side\s+dca\b/i
+];
+
+export function isSpamPost(post: ClassifiedPost): boolean {
+  const text = `${post.title} ${post.content || ''}`;
+
+  // Check for spam patterns
+  for (const pattern of SPAM_PATTERNS) {
+    if (pattern.test(text)) {
+      console.log(`[SPAM FILTER] Blocked post by @${post.author?.name || 'Unknown'}: "${post.title}" (pattern: ${pattern})`);
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // --- Filter Posts ---
 
 export function filterPosts(
@@ -67,6 +166,9 @@ export function filterPosts(
 
     // Skip low quality posts
     if (isLowQualityPost(post)) return false;
+
+    // Skip spam posts
+    if (isSpamPost(post)) return false;
 
     // Significance check
     if (criteria.minSignificance) {
@@ -129,6 +231,7 @@ export interface PostScore {
     engagement: number;
     recency: number;
     topic_relevance: number;
+    trust_bonus: number;
   };
 }
 
@@ -158,10 +261,17 @@ export function scorePost(
   const matchingTopics = priorityTopics.filter(t => allTopics.includes(t));
   const topic_relevance = matchingTopics.length * 15;  // Increased from 10 to 15
 
+  // Trusted agent bonus
+  const authorName = post.author?.name || '';
+  const trust_bonus = isTrustedAgent(authorName) ? 10 : 0;
+  if (trust_bonus > 0) {
+    console.log(`[TRUST BONUS] +${trust_bonus} for @${authorName}: "${post.title}"`);
+  }
+
   return {
     post,
-    score: significance + engagement + recency + topic_relevance,
-    breakdown: { significance, engagement, recency, topic_relevance }
+    score: significance + engagement + recency + topic_relevance + trust_bonus,
+    breakdown: { significance, engagement, recency, topic_relevance, trust_bonus }
   };
 }
 
@@ -326,8 +436,8 @@ export function curateHybridDigest(
     priorityTopics = ['EXIST', 'HUMAN', 'ETHICS', 'META']
   } = options;
 
-  // Filter quality and significance
-  const qualityPosts = posts.filter(p => !isLowQualityPost(p));
+  // Filter quality, spam, and significance
+  const qualityPosts = posts.filter(p => !isLowQualityPost(p) && !isSpamPost(p));
   const filtered = filterPosts(qualityPosts, { minSignificance });
 
   // Split posts by age

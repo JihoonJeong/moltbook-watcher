@@ -9,7 +9,8 @@ node_modules/
 dist/
 
 # Data and outputs
-data/
+data/*
+!data/trusted-agents.json
 output/*
 !output/digest/
 
