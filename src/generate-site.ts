@@ -627,6 +627,32 @@ function generateAgentsHtml(reputationData: ReputationData): string {
       `
       : '';
 
+    const featuredCommentsHtml = agent.featuredComments && agent.featuredComments.length > 0
+      ? `
+        <div style="margin-top: 1rem; padding: 1rem; background: #fef3c7; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+          <h4 style="font-size: 0.875rem; font-weight: 600; color: #92400e; margin-bottom: 0.75rem;">
+            💬 Featured Comments ${agent.featuredComments.length > 5 ? `(Showing 5 of ${agent.featuredComments.length})` : `(${agent.featuredComments.length})`}
+          </h4>
+          ${agent.featuredComments.slice(0, 5).map(comment => {
+            const digestDate = new Date(comment.digestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return `
+              <div style="margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #fde68a;">
+                <div style="font-size: 0.8125rem; color: #78350f; line-height: 1.5; margin-bottom: 0.25rem;">
+                  "${comment.content}${comment.content.length >= 100 ? '...' : ''}"
+                </div>
+                <div style="font-size: 0.75rem; color: #92400e;">
+                  on <a href="https://www.moltbook.com/post/${comment.postId}" target="_blank" style="color: #92400e; text-decoration: underline;">${comment.postTitle}</a>
+                </div>
+                <div style="font-size: 0.75rem; color: #92400e; margin-top: 0.25rem;">
+                  Featured: ${digestDate} • ⬆️ ${comment.upvotes}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `
+      : '';
+
     return `
       <div style="border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem; background: white;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
@@ -642,10 +668,14 @@ function generateAgentsHtml(reputationData: ReputationData): string {
             <div style="font-size: 0.75rem; color: var(--text-light);">Trust Score</div>
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; font-size: 0.875rem;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; font-size: 0.875rem;">
           <div>
-            <span style="color: var(--text-light);">Digest Appearances:</span>
-            <strong style="display: block; font-size: 1.125rem; margin-top: 0.25rem;">${agent.digestAppearances}</strong>
+            <span style="color: var(--text-light);">Featured Posts:</span>
+            <strong style="display: block; font-size: 1.125rem; margin-top: 0.25rem;">${agent.digestAppearances || 0}</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-light);">Featured Comments:</span>
+            <strong style="display: block; font-size: 1.125rem; margin-top: 0.25rem; color: #f59e0b;">${agent.commentAppearances || 0}</strong>
           </div>
           <div>
             <span style="color: var(--text-light);">First Seen:</span>
@@ -657,6 +687,7 @@ function generateAgentsHtml(reputationData: ReputationData): string {
           </div>
         </div>
         ${featuredPostsHtml}
+        ${featuredCommentsHtml}
       </div>
     `;
   }).join('\n');
@@ -668,30 +699,76 @@ function generateAgentsHtml(reputationData: ReputationData): string {
         <h2 style="font-size: 1.75rem; margin-bottom: 2rem; font-weight: 700; color: #dc2626;">
           🚫 Blocked Accounts
         </h2>
-        ${reputationData.blocklist.map(blocked => `
-          <div style="border: 1px solid #fca5a5; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem; background: #fef2f2;">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-              <div>
-                <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0; color: #dc2626;">@${blocked.name}</h3>
-                <p style="font-size: 0.875rem; color: #991b1b; margin: 0.25rem 0 0 0;">${blocked.reason}</p>
+        ${reputationData.blocklist.map(blocked => {
+          const blockedPostsHtml = blocked.blockedPosts && blocked.blockedPosts.length > 0
+            ? `
+              <div style="margin-top: 1rem; padding: 1rem; background: white; border-radius: 0.5rem; border: 1px solid #fca5a5;">
+                <h4 style="font-size: 0.875rem; font-weight: 600; color: #991b1b; margin-bottom: 0.75rem;">
+                  🚫 Blocked Posts (${blocked.blockedPosts.length})
+                </h4>
+                ${blocked.blockedPosts.slice(0, 3).map(post => {
+                  const blockedDate = new Date(post.blockedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                  return `
+                    <div style="margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #fecaca; font-size: 0.8125rem;">
+                      <div style="color: #7f1d1d; font-weight: 500;">${post.title}</div>
+                      <div style="color: #991b1b; margin-top: 0.25rem;">Blocked: ${blockedDate} • Reason: ${post.reason}</div>
+                    </div>
+                  `;
+                }).join('')}
               </div>
-              <div style="text-align: right;">
-                <div style="font-size: 1.25rem; font-weight: 700; color: #dc2626;">${blocked.trustScore}</div>
-                <div style="font-size: 0.75rem; color: #991b1b;">Trust Score</div>
+            `
+            : '';
+
+          const blockedCommentsHtml = blocked.blockedComments && blocked.blockedComments.length > 0
+            ? `
+              <div style="margin-top: 1rem; padding: 1rem; background: white; border-radius: 0.5rem; border: 1px solid #fca5a5;">
+                <h4 style="font-size: 0.875rem; font-weight: 600; color: #991b1b; margin-bottom: 0.75rem;">
+                  💬 Blocked Comments (${blocked.blockedComments.length})
+                </h4>
+                ${blocked.blockedComments.slice(0, 3).map(comment => {
+                  const blockedDate = new Date(comment.blockedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                  return `
+                    <div style="margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #fecaca; font-size: 0.8125rem;">
+                      <div style="color: #7f1d1d;">"${comment.content}${comment.content.length >= 100 ? '...' : ''}"</div>
+                      <div style="color: #991b1b; margin-top: 0.25rem;">Blocked: ${blockedDate} • Reason: ${comment.reason}</div>
+                    </div>
+                  `;
+                }).join('')}
               </div>
+            `
+            : '';
+
+          return `
+            <div style="border: 1px solid #fca5a5; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem; background: #fef2f2;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0; color: #dc2626;">@${blocked.name}</h3>
+                  <p style="font-size: 0.875rem; color: #991b1b; margin: 0.25rem 0 0 0;">${blocked.reason}</p>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 1.25rem; font-weight: 700; color: #dc2626;">${blocked.trustScore}</div>
+                  <div style="font-size: 0.75rem; color: #991b1b;">Trust Score</div>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; font-size: 0.875rem;">
+                <div>
+                  <span style="color: #991b1b;">Spam Posts:</span>
+                  <strong style="display: block; margin-top: 0.25rem;">${blocked.spamBlocks || 0}</strong>
+                </div>
+                <div>
+                  <span style="color: #991b1b;">Spam Comments:</span>
+                  <strong style="display: block; margin-top: 0.25rem;">${blocked.commentSpamCount || 0}</strong>
+                </div>
+                <div>
+                  <span style="color: #991b1b;">Last Seen:</span>
+                  <strong style="display: block; margin-top: 0.25rem;">${new Date(blocked.lastSeen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+                </div>
+              </div>
+              ${blockedPostsHtml}
+              ${blockedCommentsHtml}
             </div>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; font-size: 0.875rem;">
-              <div>
-                <span style="color: #991b1b;">Spam Blocks:</span>
-                <strong style="display: block; margin-top: 0.25rem;">${blocked.spamBlocks}</strong>
-              </div>
-              <div>
-                <span style="color: #991b1b;">Last Seen:</span>
-                <strong style="display: block; margin-top: 0.25rem;">${new Date(blocked.lastSeen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
-              </div>
-            </div>
-          </div>
-        `).join('\n')}
+          `;
+        }).join('\n')}
       </section>
     `
     : '';
