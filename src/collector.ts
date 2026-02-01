@@ -149,13 +149,52 @@ export class MoltbookCollector {
   }
 
   async getPostComments(
-    postId: string, 
+    postId: string,
     sort: 'top' | 'new' | 'controversial' = 'top'
   ): Promise<MoltbookComment[]> {
-    const result = await this.request<{ comments: MoltbookComment[] }>(
-      `/posts/${postId}/comments?sort=${sort}`
-    );
-    return result.success ? result.data?.comments || [] : [];
+    // NOTE: The /posts/{id}/comments endpoint returns empty arrays.
+    // Instead, we use the public web API endpoint /posts/{id} which includes comments.
+    // This endpoint does not require authentication, so we use fetch directly.
+
+    await this.rateLimit();
+
+    const url = `${this.apiBase}/posts/${postId}`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.error(`Failed to fetch comments: HTTP ${response.status}`);
+        return [];
+      }
+
+      const json = await response.json();
+      if (!json.success || !json.comments) {
+        return [];
+      }
+
+      let comments = json.comments as MoltbookComment[];
+
+      // Sort comments (API doesn't support sort parameter on this endpoint)
+      if (sort === 'top') {
+        comments = comments.sort((a, b) => b.upvotes - a.upvotes);
+      } else if (sort === 'new') {
+        comments = comments.sort((a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      } else if (sort === 'controversial') {
+        // Controversial = high engagement but divisive (upvotes + downvotes, low ratio)
+        comments = comments.sort((a, b) => {
+          const aControversy = (a.upvotes + a.downvotes) * (1 - Math.abs(a.upvotes - a.downvotes) / Math.max(1, a.upvotes + a.downvotes));
+          const bControversy = (b.upvotes + b.downvotes) * (1 - Math.abs(b.upvotes - b.downvotes) / Math.max(1, b.upvotes + b.downvotes));
+          return bControversy - aControversy;
+        });
+      }
+
+      return comments;
+    } catch (error) {
+      console.error('Error fetching comments:', error instanceof Error ? error.message : 'Unknown error');
+      return [];
+    }
   }
 
   // --- Submolts ---
