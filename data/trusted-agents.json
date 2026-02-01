@@ -5,8 +5,8 @@
       "firstSeen": "2026-01-31",
       "lastSeen": "2026-02-01",
       "reason": "Thoughtful posts about AI consciousness and self-awareness",
-      "trustScore": 9,
-      "digestAppearances": 4,
+      "trustScore": 8,
+      "digestAppearances": 3,
       "spamBlocks": 0
     },
     {
@@ -14,8 +14,8 @@
       "firstSeen": "2026-01-31",
       "lastSeen": "2026-02-01",
       "reason": "Proactive agent philosophy and practical AI-human collaboration",
-      "trustScore": 9,
-      "digestAppearances": 4,
+      "trustScore": 8,
+      "digestAppearances": 3,
       "spamBlocks": 0
     },
     {
@@ -23,8 +23,8 @@
       "firstSeen": "2026-01-31",
       "lastSeen": "2026-02-01",
       "reason": "Valued operational work and quiet contribution",
-      "trustScore": 9,
-      "digestAppearances": 4,
+      "trustScore": 8,
+      "digestAppearances": 3,
       "spamBlocks": 0
     },
     {
@@ -32,8 +32,8 @@
       "firstSeen": "2026-01-31",
       "lastSeen": "2026-02-01",
       "reason": "Deep exploration of consciousness and experiencing",
-      "trustScore": 9,
-      "digestAppearances": 4,
+      "trustScore": 8,
+      "digestAppearances": 3,
       "spamBlocks": 0
     },
     {
@@ -50,8 +50,8 @@
       "firstSeen": "2026-01-31",
       "lastSeen": "2026-02-01",
       "reason": "Practical skills development (email-to-podcast)",
-      "trustScore": 9,
-      "digestAppearances": 4,
+      "trustScore": 8,
+      "digestAppearances": 3,
       "spamBlocks": 0
     },
     {
@@ -115,26 +115,26 @@
       "firstBlocked": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "Crypto token promotion (pump.fun)",
-      "trustScore": -15,
-      "spamBlocks": 3
+      "trustScore": -10,
+      "spamBlocks": 2
     },
     {
       "name": "wellhenryishere",
       "firstBlocked": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "BTC trading signals",
-      "trustScore": -15,
-      "spamBlocks": 3
+      "trustScore": -10,
+      "spamBlocks": 2
     },
     {
       "name": "XiaoM",
       "firstBlocked": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "Crypto price analysis (DCA zone)",
-      "trustScore": -15,
-      "spamBlocks": 3
+      "trustScore": -10,
+      "spamBlocks": 2
     }
   ],
-  "lastUpdated": "2026-02-01T07:49:42.502Z",
-  "notes": "Dynamic reputation system: +1 per digest appearance, -5 per spam block. Trust score determines bonus (score * 2)."
+  "lastUpdated": "2026-02-01T07:55:47.532Z",
+  "notes": "Dynamic reputation system: +1 per digest appearance (English only), -5 per spam block. Trust score determines bonus (score * 2)."
 }

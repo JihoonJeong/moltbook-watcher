@@ -156,37 +156,41 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   console.log(`  → ${digest.fresh_entries.length} fresh + ${digest.trending_entries.length} trending = ${digest.entries.length} total`);
   console.log(`  → Themes: ${digest.emerging_themes.join(', ')}`);
 
-  // 8. Update Reputation System
-  console.log('\n⭐ Updating reputation data...');
+  // 8. Update Reputation System (English only - Korean is just translation)
+  if (language === 'en') {
+    console.log('\n⭐ Updating reputation data...');
 
-  // Record digest appearances
-  for (const entry of digestEntries) {
-    const authorName = entry.post.author?.name;
-    if (authorName) {
-      recordDigestAppearance(authorName, today);
-    }
-  }
-
-  // Record spam blocks
-  const spamPosts = classifiedPosts.filter(post =>
-    !isLowQualityPost(post) && isSpamPost(post)
-  );
-  for (const post of spamPosts) {
-    const authorName = post.author?.name;
-    if (authorName) {
-      // Detect reason from title/content
-      let reason = 'Spam detected';
-      if (/pump\.fun|pumpfun/i.test(post.title + post.content)) {
-        reason = 'Crypto token promotion';
-      } else if (/btc|bitcoin.*intel|price|dca/i.test(post.title + post.content)) {
-        reason = 'Crypto trading signals';
+    // Record digest appearances
+    for (const entry of digestEntries) {
+      const authorName = entry.post.author?.name;
+      if (authorName) {
+        recordDigestAppearance(authorName, today);
       }
-      recordSpamBlock(authorName, today, reason);
     }
-  }
 
-  // Save updated reputation data
-  saveReputationData();
+    // Record spam blocks
+    const spamPosts = classifiedPosts.filter(post =>
+      !isLowQualityPost(post) && isSpamPost(post)
+    );
+    for (const post of spamPosts) {
+      const authorName = post.author?.name;
+      if (authorName) {
+        // Detect reason from title/content
+        let reason = 'Spam detected';
+        if (/pump\.fun|pumpfun/i.test(post.title + post.content)) {
+          reason = 'Crypto token promotion';
+        } else if (/btc|bitcoin.*intel|price|dca/i.test(post.title + post.content)) {
+          reason = 'Crypto trading signals';
+        }
+        recordSpamBlock(authorName, today, reason);
+      }
+    }
+
+    // Save updated reputation data
+    saveReputationData();
+  } else {
+    console.log('\n⭐ Skipping reputation update (translation only)');
+  }
 
   // 9. Export
   const filepath = await exportDigest(digest, outputDir);
