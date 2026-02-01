@@ -206,7 +206,7 @@ async function processDailyDigest(options: ProcessOptions = {}) {
         if (parentEntry) {
           recordCommentAppearance(authorName, today, {
             id: comment.id,
-            postId: comment.post_id,
+            postId: parentEntry.post.id, // Use parent post ID instead of comment.post_id
             postTitle: parentEntry.post.title,
             content: comment.content,
             upvotes: comment.upvotes
@@ -241,19 +241,26 @@ async function processDailyDigest(options: ProcessOptions = {}) {
     for (const comment of allSpamComments) {
       const authorName = comment.author?.name;
       if (authorName) {
-        // Detect reason from content
-        let reason = 'Spam comment detected';
-        if (/pump\.fun|pumpfun|token.*launch/i.test(comment.content)) {
-          reason = 'Crypto promotion in comment';
-        } else if (/btc|bitcoin.*intel|price|dca/i.test(comment.content)) {
-          reason = 'Crypto trading signals in comment';
-        }
+        // Find the post this comment belongs to
+        const parentEntry = digestEntries.find(e =>
+          e.post.id === comment.post_id
+        );
 
-        recordCommentSpam(authorName, today, reason, {
-          id: comment.id,
-          postId: comment.post_id,
-          content: comment.content
-        });
+        if (parentEntry) {
+          // Detect reason from content
+          let reason = 'Spam comment detected';
+          if (/pump\.fun|pumpfun|token.*launch/i.test(comment.content)) {
+            reason = 'Crypto promotion in comment';
+          } else if (/btc|bitcoin.*intel|price|dca/i.test(comment.content)) {
+            reason = 'Crypto trading signals in comment';
+          }
+
+          recordCommentSpam(authorName, today, reason, {
+            id: comment.id,
+            postId: parentEntry.post.id, // Use parent post ID
+            content: comment.content
+          });
+        }
       }
     }
 
