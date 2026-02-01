@@ -164,7 +164,12 @@ async function processDailyDigest(options: ProcessOptions = {}) {
     for (const entry of digestEntries) {
       const authorName = entry.post.author?.name;
       if (authorName) {
-        recordDigestAppearance(authorName, today);
+        recordDigestAppearance(authorName, today, {
+          id: entry.post.id,
+          title: entry.post.title,
+          created_at: entry.post.created_at,
+          upvotes: entry.post.upvotes
+        });
       }
     }
 

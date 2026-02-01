@@ -4,6 +4,7 @@
 // ============================================
 
 import { readFile, writeFile, readdir, mkdir } from 'fs/promises';
+import { readFileSync } from 'fs';
 import { join, basename } from 'path';
 import { existsSync } from 'fs';
 
@@ -30,6 +31,41 @@ interface DigestData {
   reflection: string;
   hasFreshSection?: boolean;
   hasTrendingSection?: boolean;
+}
+
+interface FeaturedPost {
+  id: string;
+  title: string;
+  date: string;
+  upvotes: number;
+  digestDate: string;
+}
+
+interface AgentReputation {
+  name: string;
+  firstSeen: string;
+  lastSeen: string;
+  reason: string;
+  trustScore: number;
+  digestAppearances: number;
+  spamBlocks: number;
+  featuredPosts?: FeaturedPost[];
+}
+
+interface BlockedAgent {
+  name: string;
+  firstBlocked: string;
+  lastSeen: string;
+  reason: string;
+  trustScore: number;
+  spamBlocks: number;
+}
+
+interface ReputationData {
+  agents: AgentReputation[];
+  blocklist: BlockedAgent[];
+  lastUpdated: string;
+  notes: string;
 }
 
 // Simple markdown to HTML converter (basic)
@@ -314,6 +350,8 @@ function generateHtmlPage(digest: DigestData): string {
       <nav>
         <a href="../">Home</a>
         <a href="../#archive">Archive</a>
+        <a href="../agents.html">Agents</a>
+        <a href="../about.html">About</a>
         <a href="https://github.com/JihoonJeong/moltbook-watcher" target="_blank">GitHub</a>
       </nav>
     </div>
@@ -460,6 +498,7 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
       <nav>
         <a href="index.html">Home</a>
         <a href="#archive">Archive</a>
+        <a href="agents.html">Agents</a>
         <a href="about.html">About</a>
         <a href="https://github.com/JihoonJeong/moltbook-watcher" target="_blank">GitHub</a>
       </nav>
@@ -545,6 +584,184 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
 </html>`;
 }
 
+// Generate agents.html
+function generateAgentsHtml(reputationData: ReputationData): string {
+  // Sort agents by trustScore descending
+  const sortedAgents = [...reputationData.agents].sort((a, b) => b.trustScore - a.trustScore);
+
+  // Generate agent rows
+  const agentRowsHtml = sortedAgents.map((agent, idx) => {
+    const rank = idx + 1;
+    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+
+    const featuredPostsHtml = agent.featuredPosts && agent.featuredPosts.length > 0
+      ? `
+        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg); border-radius: 0.5rem;">
+          <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.75rem;">
+            📝 Featured Posts (${agent.featuredPosts.length})
+          </h4>
+          ${agent.featuredPosts.map(post => {
+            const postDate = new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const digestDate = new Date(post.digestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return `
+              <div style="margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">
+                <a href="https://www.moltbook.com/post/${post.id}" target="_blank" style="color: var(--text); text-decoration: none; font-weight: 500; display: block; margin-bottom: 0.25rem;">
+                  ${post.title}
+                </a>
+                <div style="font-size: 0.75rem; color: var(--text-light);">
+                  Posted: ${postDate} • Featured: ${digestDate} • ⬆️ ${post.upvotes}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `
+      : '';
+
+    return `
+      <div style="border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem; background: white;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <span style="font-size: 1.5rem; font-weight: 700; color: var(--text-light);">#${rank} ${medal}</span>
+            <div>
+              <h3 style="font-size: 1.25rem; font-weight: 700; margin: 0;">@${agent.name}</h3>
+              <p style="font-size: 0.875rem; color: var(--text-light); margin: 0.25rem 0 0 0;">${agent.reason}</p>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${agent.trustScore}</div>
+            <div style="font-size: 0.75rem; color: var(--text-light);">Trust Score</div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; font-size: 0.875rem;">
+          <div>
+            <span style="color: var(--text-light);">Digest Appearances:</span>
+            <strong style="display: block; font-size: 1.125rem; margin-top: 0.25rem;">${agent.digestAppearances}</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-light);">First Seen:</span>
+            <strong style="display: block; font-size: 1.125rem; margin-top: 0.25rem;">${new Date(agent.firstSeen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-light);">Last Seen:</span>
+            <strong style="display: block; font-size: 1.125rem; margin-top: 0.25rem;">${new Date(agent.lastSeen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+          </div>
+        </div>
+        ${featuredPostsHtml}
+      </div>
+    `;
+  }).join('\n');
+
+  // Generate blocked agents section
+  const blockedHtml = reputationData.blocklist && reputationData.blocklist.length > 0
+    ? `
+      <section style="margin-top: 4rem;">
+        <h2 style="font-size: 1.75rem; margin-bottom: 2rem; font-weight: 700; color: #dc2626;">
+          🚫 Blocked Accounts
+        </h2>
+        ${reputationData.blocklist.map(blocked => `
+          <div style="border: 1px solid #fca5a5; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem; background: #fef2f2;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0; color: #dc2626;">@${blocked.name}</h3>
+                <p style="font-size: 0.875rem; color: #991b1b; margin: 0.25rem 0 0 0;">${blocked.reason}</p>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 1.25rem; font-weight: 700; color: #dc2626;">${blocked.trustScore}</div>
+                <div style="font-size: 0.75rem; color: #991b1b;">Trust Score</div>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; font-size: 0.875rem;">
+              <div>
+                <span style="color: #991b1b;">Spam Blocks:</span>
+                <strong style="display: block; margin-top: 0.25rem;">${blocked.spamBlocks}</strong>
+              </div>
+              <div>
+                <span style="color: #991b1b;">Last Seen:</span>
+                <strong style="display: block; margin-top: 0.25rem;">${new Date(blocked.lastSeen).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+              </div>
+            </div>
+          </div>
+        `).join('\n')}
+      </section>
+    `
+    : '';
+
+  const lastUpdated = new Date(reputationData.lastUpdated).toLocaleString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Profiles - AI Agent Society News</title>
+  <meta name="description" content="Trusted AI agents ranking and featured posts from Moltbook">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🦞</span>
+        <div class="logo-text">
+          <h1>AI Agent Society News</h1>
+          <p>Observing the First AI Social Network</p>
+        </div>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="index.html#archive">Archive</a>
+        <a href="agents.html" class="active">Agents</a>
+        <a href="about.html">About</a>
+        <a href="https://github.com/JihoonJeong/moltbook-watcher" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero" style="text-align: center;">
+      <h2>🏆 Trusted Agent Profiles</h2>
+      <p>Ranking of AI agents based on digest appearances and community contributions</p>
+      <p style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-light);">
+        Last updated: ${lastUpdated}
+      </p>
+    </section>
+
+    <section style="margin-top: 3rem;">
+      <div style="background: var(--bg); padding: 1rem; border-radius: 0.5rem; margin-bottom: 2rem;">
+        <p style="margin: 0; font-size: 0.875rem; color: var(--text-light);">
+          <strong>How Trust Score Works:</strong> Each agent starts at 5 points. +1 per digest appearance, -5 per spam block.
+          Trust bonus in digest ranking = Trust Score × 2.
+        </p>
+      </div>
+
+      ${agentRowsHtml}
+    </section>
+
+    ${blockedHtml}
+  </main>
+
+  <footer>
+    <p>
+      Generated by <strong>Moltbook Watcher</strong> |
+      <a href="https://github.com/JihoonJeong/moltbook-watcher">View Source</a> |
+      Data from <a href="https://moltbook.com" target="_blank">Moltbook</a>
+    </p>
+    <p style="margin-top: 0.5rem;">
+      JJ (정지훈) / Asia2G Capital
+    </p>
+  </footer>
+</body>
+</html>`;
+}
+
 // Main generator
 async function generateSite() {
   console.log('🌐 Generating static site from digests...\n');
@@ -596,6 +813,20 @@ async function generateSite() {
     await writeFile(join(siteDir, 'index.html'), indexHtml);
     console.log(`  ✅ index.html (latest: ${latestDigest.date})`);
     totalGenerated++;
+  }
+
+  // Generate agents.html from reputation data
+  try {
+    const reputationPath = join(process.cwd(), 'data', 'trusted-agents.json');
+    if (existsSync(reputationPath)) {
+      const reputationData: ReputationData = JSON.parse(readFileSync(reputationPath, 'utf-8'));
+      const agentsHtml = generateAgentsHtml(reputationData);
+      await writeFile(join(siteDir, 'agents.html'), agentsHtml);
+      console.log(`  ✅ agents.html (${reputationData.agents.length} agents, ${reputationData.blocklist?.length || 0} blocked)`);
+      totalGenerated++;
+    }
+  } catch (error) {
+    console.warn('  ⚠️  Could not generate agents.html:', error);
   }
 
   console.log(`\n✨ Generated ${totalGenerated} pages!`);

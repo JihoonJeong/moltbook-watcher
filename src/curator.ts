@@ -19,6 +19,14 @@ const __dirname = dirname(__filename);
 
 // --- Trusted Agents & Reputation System ---
 
+interface FeaturedPost {
+  id: string;
+  title: string;
+  date: string;
+  upvotes: number;
+  digestDate: string;
+}
+
 interface AgentReputation {
   name: string;
   firstSeen: string;
@@ -27,6 +35,7 @@ interface AgentReputation {
   trustScore: number;
   digestAppearances: number;
   spamBlocks: number;
+  featuredPosts?: FeaturedPost[];
 }
 
 interface BlockedAgent {
@@ -92,7 +101,16 @@ export function isBlockedAgent(authorName: string): boolean {
 
 import { writeFileSync } from 'fs';
 
-export function recordDigestAppearance(authorName: string, date: string): void {
+export function recordDigestAppearance(
+  authorName: string,
+  date: string,
+  postInfo?: {
+    id: string;
+    title: string;
+    created_at: string;
+    upvotes: number;
+  }
+): void {
   const data = loadReputationData();
   const agentName = authorName.trim();
 
@@ -103,9 +121,27 @@ export function recordDigestAppearance(authorName: string, date: string): void {
     agent.digestAppearances += 1;
     agent.trustScore += 1;
     agent.lastSeen = date;
+
+    // Add featured post if provided
+    if (postInfo) {
+      if (!agent.featuredPosts) agent.featuredPosts = [];
+
+      agent.featuredPosts.unshift({
+        id: postInfo.id,
+        title: postInfo.title,
+        date: postInfo.created_at,
+        upvotes: postInfo.upvotes,
+        digestDate: date
+      });
+
+      // Keep only the 5 most recent posts
+      if (agent.featuredPosts.length > 5) {
+        agent.featuredPosts = agent.featuredPosts.slice(0, 5);
+      }
+    }
   } else {
     // New agent: create entry
-    data.agents.push({
+    const newAgent: AgentReputation = {
       name: agentName,
       firstSeen: date,
       lastSeen: date,
@@ -113,7 +149,20 @@ export function recordDigestAppearance(authorName: string, date: string): void {
       trustScore: 5, // Starting score
       digestAppearances: 1,
       spamBlocks: 0
-    });
+    };
+
+    // Add featured post if provided
+    if (postInfo) {
+      newAgent.featuredPosts = [{
+        id: postInfo.id,
+        title: postInfo.title,
+        date: postInfo.created_at,
+        upvotes: postInfo.upvotes,
+        digestDate: date
+      }];
+    }
+
+    data.agents.push(newAgent);
     console.log(`[REPUTATION] New agent added: ${agentName} (starting score: 5)`);
   }
 
