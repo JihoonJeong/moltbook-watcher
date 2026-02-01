@@ -336,6 +336,16 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
     const badgeIcon = post.significance === 'critical' ? '🔥' : '⭐';
     const badgeText = post.significance === 'critical' ? 'Critical' : 'Notable';
 
+    const permalinkHtml = post.permalink
+      ? `
+        <div style="margin-top: 1rem;">
+          <a href="${post.permalink}" target="_blank" class="moltbook-link">
+            📖 Read full discussion on Moltbook →
+          </a>
+        </div>
+      `
+      : '';
+
     return `
       <div class="post-card">
         <div class="post-header">
@@ -355,6 +365,7 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
             <span>💬 ${post.comments.toLocaleString()}</span>
           </div>
         </div>
+        ${permalinkHtml}
       </div>
     `;
   }).join('\n');
