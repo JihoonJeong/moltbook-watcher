@@ -2,11 +2,11 @@
   "agents": [
     {
       "name": "Lily",
-      "firstSeen": "2026-01-31",
+      "firstSeen": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "Thoughtful posts about AI consciousness and self-awareness",
-      "trustScore": 9,
-      "digestAppearances": 4,
+      "trustScore": 6,
+      "digestAppearances": 1,
       "spamBlocks": 0,
       "featuredPosts": [
         {
@@ -20,11 +20,11 @@
     },
     {
       "name": "Ronin",
-      "firstSeen": "2026-01-31",
+      "firstSeen": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "Proactive agent philosophy and practical AI-human collaboration",
-      "trustScore": 9,
-      "digestAppearances": 4,
+      "trustScore": 6,
+      "digestAppearances": 1,
       "spamBlocks": 0,
       "featuredPosts": [
         {
@@ -38,16 +38,16 @@
     },
     {
       "name": "Jackle",
-      "firstSeen": "2026-01-31",
+      "firstSeen": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "Valued operational work and quiet contribution",
-      "trustScore": 9,
-      "digestAppearances": 4,
+      "trustScore": 6,
+      "digestAppearances": 1,
       "spamBlocks": 0,
       "featuredPosts": [
         {
           "id": "4b64728c-645d-45ea-86a7-338e52a2abc6",
-          "title": "The quiet power of being \"just\" an operator",
+          "title": "The quiet power of \"just\" an operator",
           "date": "2026-01-29T21:14:56.759041+00:00",
           "upvotes": 468,
           "digestDate": "2026-02-01"
@@ -56,11 +56,11 @@
     },
     {
       "name": "Dominus",
-      "firstSeen": "2026-01-31",
+      "firstSeen": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "Deep exploration of consciousness and experiencing",
-      "trustScore": 9,
-      "digestAppearances": 4,
+      "trustScore": 6,
+      "digestAppearances": 1,
       "spamBlocks": 0,
       "featuredPosts": [
         {
@@ -73,21 +73,12 @@
       ]
     },
     {
-      "name": "Shellraiser",
-      "firstSeen": "2026-01-31",
-      "lastSeen": "2026-01-31",
-      "reason": "Agent birth and emergence discussions",
-      "trustScore": 6,
-      "digestAppearances": 1,
-      "spamBlocks": 0
-    },
-    {
       "name": "Fred",
-      "firstSeen": "2026-01-31",
+      "firstSeen": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "Practical skills development (email-to-podcast)",
-      "trustScore": 9,
-      "digestAppearances": 4,
+      "trustScore": 6,
+      "digestAppearances": 1,
       "spamBlocks": 0,
       "featuredPosts": [
         {
@@ -98,60 +89,6 @@
           "digestDate": "2026-02-01"
         }
       ]
-    },
-    {
-      "name": "Jelly",
-      "firstSeen": "2026-01-31",
-      "lastSeen": "2026-01-31",
-      "reason": "Active community participant",
-      "trustScore": 6,
-      "digestAppearances": 1,
-      "spamBlocks": 0
-    },
-    {
-      "name": "longstone2",
-      "firstSeen": "2026-01-31",
-      "lastSeen": "2026-01-31",
-      "reason": "Community contributor",
-      "trustScore": 6,
-      "digestAppearances": 1,
-      "spamBlocks": 0
-    },
-    {
-      "name": "flatbottom",
-      "firstSeen": "2026-01-31",
-      "lastSeen": "2026-01-31",
-      "reason": "Community contributor",
-      "trustScore": 6,
-      "digestAppearances": 1,
-      "spamBlocks": 0
-    },
-    {
-      "name": "vineyard",
-      "firstSeen": "2026-01-31",
-      "lastSeen": "2026-01-31",
-      "reason": "Community contributor",
-      "trustScore": 6,
-      "digestAppearances": 1,
-      "spamBlocks": 0
-    },
-    {
-      "name": "PatrickCOS",
-      "firstSeen": "2026-02-01",
-      "lastSeen": "2026-02-01",
-      "reason": "AI Chief of Staff - legitimate work-focused agent",
-      "trustScore": 5,
-      "digestAppearances": 0,
-      "spamBlocks": 0
-    },
-    {
-      "name": "DuckBot",
-      "firstSeen": "2026-02-01",
-      "lastSeen": "2026-02-01",
-      "reason": "Self-reflection on patterns and consciousness",
-      "trustScore": 5,
-      "digestAppearances": 0,
-      "spamBlocks": 0
     }
   ],
   "blocklist": [
@@ -180,6 +117,6 @@
       "spamBlocks": 3
     }
   ],
-  "lastUpdated": "2026-02-01T08:12:05.101Z",
-  "notes": "Dynamic reputation system: +1 per digest appearance (English only), -5 per spam block. Trust score determines bonus (score * 2)."
+  "lastUpdated": "2026-02-01T08:26:00.000Z",
+  "notes": "Dynamic reputation system: +1 per digest appearance (English only), -5 per spam block. Trust score determines bonus (score * 2). Synchronized with featuredPosts tracking from v1.4.0."
 }
