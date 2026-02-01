@@ -299,3 +299,85 @@ export function extractThemes(posts: ClassifiedPost[]): string[] {
 
   return result;
 }
+
+// --- Hybrid Digest Curation ---
+
+export interface HybridDigestResult {
+  fresh: PostScore[];
+  trending: PostScore[];
+}
+
+export function curateHybridDigest(
+  posts: ClassifiedPost[],
+  options: {
+    maxFresh?: number;
+    maxTrending?: number;
+    freshHours?: number;
+    minSignificance?: SignificanceLevel;
+    priorityTopics?: TopicCode[];
+  } = {}
+): HybridDigestResult {
+  const {
+    maxFresh = 5,
+    maxTrending = 5,
+    freshHours = 24,
+    minSignificance = 'worth_watching',
+    priorityTopics = ['EXIST', 'HUMAN', 'ETHICS', 'META']
+  } = options;
+
+  // Filter quality and significance
+  const qualityPosts = posts.filter(p => !isLowQualityPost(p));
+  const filtered = filterPosts(qualityPosts, { minSignificance });
+
+  // Split posts by age
+  const now = Date.now();
+  const freshCutoff = now - (freshHours * 60 * 60 * 1000);
+
+  const freshPosts: ClassifiedPost[] = [];
+  const trendingPosts: ClassifiedPost[] = [];
+
+  for (const post of filtered) {
+    const postTime = new Date(post.created_at).getTime();
+    if (postTime >= freshCutoff) {
+      freshPosts.push(post);
+    } else {
+      trendingPosts.push(post);
+    }
+  }
+
+  // Score fresh posts (emphasize recency)
+  const scoredFresh = freshPosts.map(post => {
+    const baseScore = scorePost(post, priorityTopics);
+    // Double the recency weight for fresh posts
+    const boostedScore = {
+      ...baseScore,
+      score: baseScore.score + baseScore.breakdown.recency,
+      breakdown: {
+        ...baseScore.breakdown,
+        recency: baseScore.breakdown.recency * 2
+      }
+    };
+    return boostedScore;
+  }).sort((a, b) => b.score - a.score);
+
+  // Score trending posts (emphasize engagement)
+  const scoredTrending = trendingPosts.map(post => {
+    const baseScore = scorePost(post, priorityTopics);
+    // Double the engagement weight for trending posts
+    const boostedScore = {
+      ...baseScore,
+      score: baseScore.score + baseScore.breakdown.engagement,
+      breakdown: {
+        ...baseScore.breakdown,
+        engagement: baseScore.breakdown.engagement * 2
+      }
+    };
+    return boostedScore;
+  }).sort((a, b) => b.score - a.score);
+
+  // Select top N from each
+  const fresh = scoredFresh.slice(0, maxFresh);
+  const trending = scoredTrending.slice(0, maxTrending);
+
+  return { fresh, trending };
+}

@@ -57,7 +57,11 @@ const SIGNIFICANCE_LABELS_KO: Record<SignificanceLevel, string> = {
 export async function generateDailyDigest(
   entries: DigestEntry[],
   language: 'en' | 'ko',
-  date?: string
+  date?: string,
+  options?: {
+    freshEntries?: DigestEntry[];
+    trendingEntries?: DigestEntry[];
+  }
 ): Promise<DailyDigest> {
   // Translate to Korean if needed
   if (language === 'ko' && isTranslationEnabled()) {
@@ -132,6 +136,8 @@ export async function generateDailyDigest(
   return {
     date: date || new Date().toISOString().split('T')[0],
     entries,
+    fresh_entries: options?.freshEntries || [],
+    trending_entries: options?.trendingEntries || [],
     emerging_themes: themes,
     reflection_question: reflection,
     language,
@@ -165,73 +171,94 @@ export function formatDigestMarkdown(digest: DailyDigest): string {
   lines.push('---');
   lines.push('');
 
-  // Top Posts
-  if (isKorean) {
-    lines.push('## 오늘의 주요 포스트');
-  } else {
-    lines.push('## Top Posts Today');
-  }
-  lines.push('');
-
-  for (let i = 0; i < digest.entries.length; i++) {
-    const entry = digest.entries[i];
-    const { post, highlight } = entry;
+  // Helper function to format entry
+  const formatEntry = (entry: DigestEntry, index: number) => {
+    const { post } = entry;
     const { classification } = post;
+    const entryLines: string[] = [];
 
-    lines.push(`### ${i + 1}. ${post.title}`);
-    lines.push('');
-    lines.push(`${sigLabels[classification.significance]} | ${topicLabels[classification.topic]}`);
-    lines.push('');
-    
+    entryLines.push(`### ${index + 1}. ${post.title}`);
+    entryLines.push('');
+    entryLines.push(`${sigLabels[classification.significance]} | ${topicLabels[classification.topic]}`);
+    entryLines.push('');
+
     if (post.content) {
-      // Truncate long content
-      const preview = post.content.length > 300 
+      const preview = post.content.length > 300
         ? post.content.slice(0, 297) + '...'
         : post.content;
-      lines.push(`> ${preview.replace(/\n/g, '\n> ')}`);
-      lines.push('');
+      entryLines.push(`> ${preview.replace(/\n/g, '\n> ')}`);
+      entryLines.push('');
     }
 
-    lines.push(`— **@${post.author.name}** | ⬆️ ${post.upvotes} | 💬 ${post.comment_count}`);
-    lines.push('');
+    entryLines.push(`— **@${post.author.name}** | ⬆️ ${post.upvotes} | 💬 ${post.comment_count}`);
+    entryLines.push('');
 
-    // Add permalink to Moltbook
     const moltbookUrl = `https://www.moltbook.com/post/${post.id}`;
     if (isKorean) {
-      lines.push(`[📖 Moltbook에서 전체 토론 보기](${moltbookUrl})`);
+      entryLines.push(`[📖 Moltbook에서 전체 토론 보기](${moltbookUrl})`);
     } else {
-      lines.push(`[📖 Read full discussion on Moltbook](${moltbookUrl})`);
+      entryLines.push(`[📖 Read full discussion on Moltbook](${moltbookUrl})`);
     }
 
     if (classification.human_ai_relevance) {
-      lines.push('');
+      entryLines.push('');
       if (isKorean) {
-        lines.push(`**인사이트:** ${classification.human_ai_relevance}`);
+        entryLines.push(`**인사이트:** ${classification.human_ai_relevance}`);
       } else {
-        lines.push(`**Insight:** ${classification.human_ai_relevance}`);
+        entryLines.push(`**Insight:** ${classification.human_ai_relevance}`);
       }
     }
 
-    // Add top comments section
     if (entry.top_comments && entry.top_comments.length > 0) {
-      lines.push('');
+      entryLines.push('');
       if (isKorean) {
-        lines.push(`**💬 주요 댓글:**`);
+        entryLines.push(`**💬 주요 댓글:**`);
       } else {
-        lines.push(`**💬 Top Comments:**`);
+        entryLines.push(`**💬 Top Comments:**`);
       }
-      lines.push('');
+      entryLines.push('');
 
       for (const comment of entry.top_comments) {
         const commentPreview = comment.content.length > 200
           ? comment.content.slice(0, 197) + '...'
           : comment.content;
-        lines.push(`> *@${comment.author.name}* (⬆️ ${comment.upvotes}): ${commentPreview.replace(/\n/g, ' ')}`);
-        lines.push('');
+        entryLines.push(`> *@${comment.author.name}* (⬆️ ${comment.upvotes}): ${commentPreview.replace(/\n/g, ' ')}`);
+        entryLines.push('');
       }
     }
 
+    entryLines.push('');
+    return entryLines;
+  };
+
+  // Fresh Posts Section
+  if (digest.fresh_entries.length > 0) {
+    if (isKorean) {
+      lines.push('## 🆕 신선한 소식 (Fresh Today)');
+    } else {
+      lines.push('## 🆕 Fresh Today');
+    }
     lines.push('');
+
+    digest.fresh_entries.forEach((entry, idx) => {
+      lines.push(...formatEntry(entry, idx));
+    });
+  }
+
+  // Trending Posts Section
+  if (digest.trending_entries.length > 0) {
+    lines.push('---');
+    lines.push('');
+    if (isKorean) {
+      lines.push('## 🔥 계속 인기 (Still Trending)');
+    } else {
+      lines.push('## 🔥 Still Trending');
+    }
+    lines.push('');
+
+    digest.trending_entries.forEach((entry, idx) => {
+      lines.push(...formatEntry(entry, idx));
+    });
   }
 
   // Emerging Themes

@@ -9,7 +9,7 @@ dotenv.config();
 
 import { loadCollectedData, filterPostsByDate, getDateRange, getPostStats, getDateString } from './utils.js';
 import { classifyWithHeuristics, classifyCommentWithHeuristics } from './classifier.js';
-import { rankPosts, isLowQualityPost } from './curator.js';
+import { rankPosts, isLowQualityPost, curateHybridDigest } from './curator.js';
 import { generateDailyDigest, formatDigestMarkdown, exportDigest } from './reporter.js';
 import { createCollector } from './collector.js';
 import { join } from 'path';
@@ -70,59 +70,90 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   console.log(`  → Filtered out ${filtered} low-quality posts (emoji-only, too short, etc.)`);
   console.log(`  → ${qualityPosts.length} quality posts remaining`);
 
-  // 5. Rank and curate
-  console.log('\n⭐ Ranking posts by significance...');
-  const ranked = rankPosts(qualityPosts);
+  // 5. Hybrid curation (Fresh + Trending)
+  console.log('\n🆕 Curating hybrid digest (Fresh + Trending)...');
+  const { fresh, trending } = curateHybridDigest(qualityPosts, {
+    maxFresh: Math.ceil(limit / 2),       // Half for fresh
+    maxTrending: Math.floor(limit / 2),   // Half for trending
+    freshHours: 24
+  });
 
-  const topPosts = ranked.slice(0, limit).map(r => r.post);
-  console.log(`  → Top ${topPosts.length} posts selected for digest`);
+  console.log(`  → ${fresh.length} fresh posts (24h or less)`);
+  console.log(`  → ${trending.length} trending posts (older but popular)`);
 
-  // Show top 3
-  console.log('\n  Top 3:');
-  for (let i = 0; i < Math.min(3, ranked.length); i++) {
-    const { post, score, breakdown } = ranked[i];
-    console.log(`    ${i + 1}. [${score.toFixed(1)}] ${post.title.slice(0, 50)}...`);
+  // Show top posts from each section
+  console.log('\n  🆕 Top Fresh:');
+  for (let i = 0; i < Math.min(3, fresh.length); i++) {
+    const { post, score } = fresh[i];
+    const age = ((Date.now() - new Date(post.created_at).getTime()) / (1000 * 60 * 60)).toFixed(1);
+    console.log(`    ${i + 1}. [${score.toFixed(1)}] ${post.title.slice(0, 50)}... (${age}h old)`);
     console.log(`       Topic: ${post.classification.topic}, Sig: ${post.classification.significance}`);
   }
 
-  // 6. Collect and classify comments for top posts
-  console.log('\n💬 Collecting comments for top posts...');
+  if (trending.length > 0) {
+    console.log('\n  🔥 Top Trending:');
+    for (let i = 0; i < Math.min(3, trending.length); i++) {
+      const { post, score } = trending[i];
+      const age = ((Date.now() - new Date(post.created_at).getTime()) / (1000 * 60 * 60)).toFixed(1);
+      console.log(`    ${i + 1}. [${score.toFixed(1)}] ${post.title.slice(0, 50)}... (${age}h old)`);
+      console.log(`       Topic: ${post.classification.topic}, Sig: ${post.classification.significance}`);
+    }
+  }
+
+  // 6. Collect and classify comments for all posts
+  console.log('\n💬 Collecting comments for selected posts...');
   const collector = createCollector();
-  const digestEntries: DigestEntry[] = [];
+  const freshEntries: DigestEntry[] = [];
+  const trendingEntries: DigestEntry[] = [];
 
-  for (const post of topPosts) {
-    console.log(`  → Fetching comments for: ${post.title.slice(0, 40)}...`);
-
+  // Process fresh posts
+  for (const { post } of fresh) {
     const comments = await collector.getPostComments(post.id, 'top');
-    console.log(`    Found ${comments.length} comments`);
-
-    // Classify and rank top 3-5 comments
     const classifiedComments: ClassifiedComment[] = comments
-      .slice(0, 10) // Only consider top 10
+      .slice(0, 10)
       .map(comment => classifyCommentWithHeuristics(comment, post.classification.topic));
-
-    // Sort by upvotes and take top 3
     const topComments = classifiedComments
       .sort((a, b) => b.upvotes - a.upvotes)
       .slice(0, 3);
 
-    digestEntries.push({
+    freshEntries.push({
       post,
       highlight: post.classification.summary,
       top_comments: topComments.length > 0 ? topComments : undefined
     });
-
-    if (topComments.length > 0) {
-      console.log(`    Selected ${topComments.length} top comments (max upvotes: ${topComments[0].upvotes})`);
-    }
   }
+
+  // Process trending posts
+  for (const { post } of trending) {
+    const comments = await collector.getPostComments(post.id, 'top');
+    const classifiedComments: ClassifiedComment[] = comments
+      .slice(0, 10)
+      .map(comment => classifyCommentWithHeuristics(comment, post.classification.topic));
+    const topComments = classifiedComments
+      .sort((a, b) => b.upvotes - a.upvotes)
+      .slice(0, 3);
+
+    trendingEntries.push({
+      post,
+      highlight: post.classification.summary,
+      top_comments: topComments.length > 0 ? topComments : undefined
+    });
+  }
+
+  console.log(`  → Processed ${freshEntries.length} fresh + ${trendingEntries.length} trending posts`);
+
+  // Combine for backward compatibility
+  const digestEntries = [...freshEntries, ...trendingEntries];
 
   // 7. Generate digest
   console.log(`\n📰 Generating ${language.toUpperCase()} digest...`);
   const today = getDateString();
-  const digest = await generateDailyDigest(digestEntries, language, today);
+  const digest = await generateDailyDigest(digestEntries, language, today, {
+    freshEntries,
+    trendingEntries
+  });
 
-  console.log(`  → ${digest.entries.length} entries`);
+  console.log(`  → ${digest.fresh_entries.length} fresh + ${digest.trending_entries.length} trending = ${digest.entries.length} total`);
   console.log(`  → Themes: ${digest.emerging_themes.join(', ')}`);
 
   // 8. Export

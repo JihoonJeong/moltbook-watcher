@@ -147,7 +147,9 @@ export interface DigestEntry {
 
 export interface DailyDigest {
   date: string;
-  entries: DigestEntry[];
+  entries: DigestEntry[];  // Kept for backward compatibility (fresh + trending combined)
+  fresh_entries: DigestEntry[];      // 🆕 Fresh Today (24h or less)
+  trending_entries: DigestEntry[];   // 🔥 Still Trending (older but popular)
   emerging_themes: string[];
   reflection_question: string;
   language: 'en' | 'ko';

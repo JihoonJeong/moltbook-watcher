@@ -28,6 +28,8 @@ interface DigestData {
   }>;
   themes: string[];
   reflection: string;
+  hasFreshSection?: boolean;
+  hasTrendingSection?: boolean;
 }
 
 // Simple markdown to HTML converter (basic)
@@ -103,6 +105,10 @@ function parseDigest(markdown: string, filename: string): DigestData {
   // Extract posts with optional comments section
   const posts: DigestData['posts'] = [];
 
+  // Detect if using hybrid format (Fresh/Trending sections)
+  const hasFreshSection = markdown.includes('## 🆕 Fresh Today') || markdown.includes('## 🆕 신선한 소식');
+  const hasTrendingSection = markdown.includes('## 🔥 Still Trending') || markdown.includes('## 🔥 계속 인기');
+
   // Split by post headers (###)
   const postSections = markdown.split(/(?=### \d+\.)/g).filter(s => s.trim().startsWith('###'));
 
@@ -170,7 +176,9 @@ function parseDigest(markdown: string, filename: string): DigestData {
     content: markdown,
     posts,
     themes,
-    reflection
+    reflection,
+    hasFreshSection,
+    hasTrendingSection
   };
 }
 
@@ -184,7 +192,8 @@ function generateHtmlPage(digest: DigestData): string {
     : `<a href="digest-${digest.date}.html" class="lang-link active">English</a>
        <a href="digest-${digest.date}-ko.html" class="lang-link">한국어</a>`;
 
-  const postsHtml = digest.posts.map((post, idx) => {
+  // Helper to render a post card
+  const renderPost = (post: DigestData['posts'][0], idx: number) => {
     const badgeClass = post.significance === 'critical' ? 'badge-critical' : 'badge-notable';
     const badgeIcon = post.significance === 'critical' ? '🔥' : '⭐';
     const badgeText = post.significance === 'critical'
@@ -244,7 +253,42 @@ function generateHtmlPage(digest: DigestData): string {
         ${commentsHtml}
       </div>
     `;
-  }).join('\n');
+  };
+
+  // Generate posts HTML with optional section headers
+  let postsHtml = '';
+  if (digest.hasFreshSection && digest.hasTrendingSection) {
+    // Hybrid format: split posts in half
+    const midpoint = Math.ceil(digest.posts.length / 2);
+    const freshPosts = digest.posts.slice(0, midpoint);
+    const trendingPosts = digest.posts.slice(midpoint);
+
+    // Fresh section
+    postsHtml += `
+      <div style="margin-bottom: 3rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">
+          🆕 ${isKorean ? '신선한 소식 (Fresh Today)' : 'Fresh Today'}
+        </h2>
+        ${freshPosts.map((post, idx) => renderPost(post, idx)).join('\n')}
+      </div>
+    `;
+
+    // Trending section
+    if (trendingPosts.length > 0) {
+      postsHtml += `
+        <hr style="margin: 3rem 0; border: none; border-top: 1px solid var(--border);">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">
+            🔥 ${isKorean ? '계속 인기 (Still Trending)' : 'Still Trending'}
+          </h2>
+          ${trendingPosts.map((post, idx) => renderPost(post, idx)).join('\n')}
+        </div>
+      `;
+    }
+  } else {
+    // Legacy format: all posts together
+    postsHtml = digest.posts.map((post, idx) => renderPost(post, idx)).join('\n');
+  }
 
   const themesHtml = digest.themes.map(theme => `<li>${theme}</li>`).join('\n');
 
@@ -284,9 +328,11 @@ function generateHtmlPage(digest: DigestData): string {
     </div>
 
     <section>
+      ${digest.hasFreshSection && digest.hasTrendingSection ? '' : `
       <h2 style="font-size: 1.75rem; margin-bottom: 2rem; font-weight: 700;">
         ${isKorean ? '오늘의 주요 포스트' : 'Top Posts Today'}
       </h2>
+      `}
       ${postsHtml}
     </section>
 
@@ -329,7 +375,12 @@ function generateHtmlPage(digest: DigestData): string {
 
 // Generate index.html
 function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): string {
-  const topPosts = latestDigest.posts.slice(0, 3);
+  // For hybrid format, show first 3 from fresh section
+  // For legacy format, show top 3 overall
+  const isHybrid = latestDigest.hasFreshSection && latestDigest.hasTrendingSection;
+  const topPosts = isHybrid
+    ? latestDigest.posts.slice(0, 3)  // First 3 (from fresh section)
+    : latestDigest.posts.slice(0, 3); // Top 3 overall
 
   const postsHtml = topPosts.map(post => {
     const badgeClass = post.significance === 'critical' ? 'badge-critical' : 'badge-notable';
@@ -437,6 +488,13 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
         </div>
       </div>
 
+      ${isHybrid ? `
+      <div style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text); margin-bottom: 1rem;">
+          🆕 Fresh Today
+        </h3>
+      </div>
+      ` : ''}
       ${postsHtml}
 
       <div style="text-align: center; margin-top: 2rem;">
