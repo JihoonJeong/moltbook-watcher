@@ -35,6 +35,23 @@ interface BlockedPost {
   reason: string;
 }
 
+interface FeaturedComment {
+  id: string;
+  postId: string;
+  postTitle: string;
+  content: string;
+  upvotes: number;
+  digestDate: string;
+}
+
+interface BlockedComment {
+  id: string;
+  postId: string;
+  content: string;
+  blockedDate: string;
+  reason: string;
+}
+
 interface AgentReputation {
   name: string;
   firstSeen: string;
@@ -44,6 +61,8 @@ interface AgentReputation {
   digestAppearances: number;
   spamBlocks: number;
   featuredPosts?: FeaturedPost[];
+  featuredComments?: FeaturedComment[];
+  commentAppearances?: number;
 }
 
 interface BlockedAgent {
@@ -54,6 +73,8 @@ interface BlockedAgent {
   trustScore: number;
   spamBlocks: number;
   blockedPosts?: BlockedPost[];
+  blockedComments?: BlockedComment[];
+  commentSpamCount?: number;
 }
 
 interface ReputationData {
@@ -275,6 +296,166 @@ export function recordSpamBlock(
   reputationDataCache = data;
 }
 
+// --- Comment Reputation Tracking ---
+
+export function recordCommentAppearance(
+  authorName: string,
+  date: string,
+  commentInfo: {
+    id: string;
+    postId: string;
+    postTitle: string;
+    content: string;
+    upvotes: number;
+  }
+): void {
+  const data = loadReputationData();
+  const agentName = authorName.trim();
+
+  let agent = data.agents.find(a => a.name.toLowerCase() === agentName.toLowerCase());
+
+  if (agent) {
+    // Existing agent: check for duplicate comment
+    agent.lastSeen = date;
+
+    if (!agent.featuredComments) agent.featuredComments = [];
+    if (!agent.commentAppearances) agent.commentAppearances = 0;
+
+    // Check if this comment ID already exists
+    const alreadyFeatured = agent.featuredComments.some(c => c.id === commentInfo.id);
+
+    if (!alreadyFeatured) {
+      // New unique comment: add it
+      agent.featuredComments.unshift({
+        id: commentInfo.id,
+        postId: commentInfo.postId,
+        postTitle: commentInfo.postTitle,
+        content: commentInfo.content.slice(0, 100),
+        upvotes: commentInfo.upvotes,
+        digestDate: date
+      });
+
+      // Sync commentAppearances with unique comment count
+      agent.commentAppearances = agent.featuredComments.length;
+
+      // Update trust score: base(5) + posts(+1 each) + comments(+0.5 each)
+      const postBonus = agent.digestAppearances || 0;
+      const commentBonus = agent.commentAppearances * 0.5;
+      agent.trustScore = 5 + postBonus + commentBonus;
+
+      console.log(`[REPUTATION] Featured comment from @${agentName}: "${commentInfo.content.slice(0, 30)}..." (+0.5, total: ${agent.trustScore.toFixed(1)})`);
+    } else {
+      console.log(`[REPUTATION] Duplicate comment skipped for @${agentName} (already featured)`);
+    }
+  } else {
+    // New agent (comment-only): create entry
+    const newAgent: AgentReputation = {
+      name: agentName,
+      firstSeen: date,
+      lastSeen: date,
+      reason: 'Featured comment in digest',
+      trustScore: 5.5, // Starting score (5) + first comment (0.5)
+      digestAppearances: 0,
+      spamBlocks: 0,
+      featuredComments: [{
+        id: commentInfo.id,
+        postId: commentInfo.postId,
+        postTitle: commentInfo.postTitle,
+        content: commentInfo.content.slice(0, 100),
+        upvotes: commentInfo.upvotes,
+        digestDate: date
+      }],
+      commentAppearances: 1
+    };
+
+    data.agents.push(newAgent);
+    console.log(`[REPUTATION] New agent added (comment): ${agentName} (score: ${newAgent.trustScore})`);
+  }
+
+  // Update cache
+  reputationDataCache = data;
+}
+
+export function recordCommentSpam(
+  authorName: string,
+  date: string,
+  reason: string,
+  commentInfo: {
+    id: string;
+    postId: string;
+    content: string;
+  }
+): void {
+  const data = loadReputationData();
+  const agentName = authorName.trim();
+
+  // Check if already in blocklist
+  let blocked = data.blocklist?.find(b => b.name.toLowerCase() === agentName.toLowerCase());
+
+  if (blocked) {
+    // Already blocked: check for duplicate spam comment
+    blocked.lastSeen = date;
+
+    if (!blocked.blockedComments) blocked.blockedComments = [];
+    if (!blocked.commentSpamCount) blocked.commentSpamCount = 0;
+
+    // Check if this comment ID already exists
+    const alreadyBlocked = blocked.blockedComments.some(c => c.id === commentInfo.id);
+
+    if (!alreadyBlocked) {
+      // New spam comment: add it
+      blocked.blockedComments.unshift({
+        id: commentInfo.id,
+        postId: commentInfo.postId,
+        content: commentInfo.content.slice(0, 100),
+        blockedDate: date,
+        reason
+      });
+
+      // Sync commentSpamCount with unique blocked comments count
+      blocked.commentSpamCount = blocked.blockedComments.length;
+
+      // Update trust score: -(posts * 5) - (comments * 2.5)
+      const postPenalty = (blocked.spamBlocks || 0) * 5;
+      const commentPenalty = blocked.commentSpamCount * 2.5;
+      blocked.trustScore = -(postPenalty + commentPenalty);
+
+      console.log(`[REPUTATION] Spam comment from @${agentName}: "${commentInfo.content.slice(0, 30)}..." (-2.5, total: ${blocked.trustScore})`);
+    } else {
+      console.log(`[REPUTATION] Duplicate spam comment skipped for @${agentName} (already blocked)`);
+    }
+  } else {
+    // New block (comment spam): add to blocklist
+    if (!data.blocklist) data.blocklist = [];
+
+    const newBlocked: BlockedAgent = {
+      name: agentName,
+      firstBlocked: date,
+      lastSeen: date,
+      reason,
+      trustScore: -2.5,
+      spamBlocks: 0,
+      blockedComments: [{
+        id: commentInfo.id,
+        postId: commentInfo.postId,
+        content: commentInfo.content.slice(0, 100),
+        blockedDate: date,
+        reason
+      }],
+      commentSpamCount: 1
+    };
+
+    data.blocklist.push(newBlocked);
+    console.log(`[REPUTATION] Agent blocked (comment spam): ${agentName} (reason: ${reason}, score: ${newBlocked.trustScore})`);
+
+    // Remove from trusted list if present
+    data.agents = data.agents.filter(a => a.name.toLowerCase() !== agentName.toLowerCase());
+  }
+
+  // Update cache
+  reputationDataCache = data;
+}
+
 export function saveReputationData(): void {
   if (!reputationDataCache || !reputationDataPath) {
     console.warn('[REPUTATION] No data to save');
@@ -384,6 +565,20 @@ export function isSpamPost(post: ClassifiedPost): boolean {
   for (const pattern of SPAM_PATTERNS) {
     if (pattern.test(text)) {
       console.log(`[SPAM FILTER] Blocked post by @${post.author?.name || 'Unknown'}: "${post.title}" (pattern: ${pattern})`);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function isSpamComment(comment: { content: string; author?: { name?: string } }): boolean {
+  const text = comment.content;
+
+  // Check for spam patterns
+  for (const pattern of SPAM_PATTERNS) {
+    if (pattern.test(text)) {
+      console.log(`[SPAM FILTER] Blocked comment by @${comment.author?.name || 'Unknown'}: "${text.slice(0, 40)}..." (pattern: ${pattern})`);
       return true;
     }
   }

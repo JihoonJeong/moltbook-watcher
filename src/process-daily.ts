@@ -9,7 +9,7 @@ dotenv.config();
 
 import { loadCollectedData, filterPostsByDate, getDateRange, getPostStats, getDateString } from './utils.js';
 import { classifyWithHeuristics, classifyCommentWithHeuristics } from './classifier.js';
-import { rankPosts, isLowQualityPost, curateHybridDigest, recordDigestAppearance, saveReputationData, isSpamPost, recordSpamBlock } from './curator.js';
+import { rankPosts, isLowQualityPost, curateHybridDigest, recordDigestAppearance, saveReputationData, isSpamPost, recordSpamBlock, recordCommentAppearance, recordCommentSpam, isSpamComment } from './curator.js';
 import { generateDailyDigest, formatDigestMarkdown, exportDigest } from './reporter.js';
 import { createCollector } from './collector.js';
 import { join } from 'path';
@@ -106,15 +106,41 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   const freshEntries: DigestEntry[] = [];
   const trendingEntries: DigestEntry[] = [];
 
-  // Process fresh posts
-  for (const { post } of fresh) {
-    const comments = await collector.getPostComments(post.id, 'top');
-    const classifiedComments: ClassifiedComment[] = comments
-      .slice(0, 10)
+  const allFeaturedComments: ClassifiedComment[] = [];
+  const allSpamComments: ClassifiedComment[] = [];
+
+  // Helper function to process comments with reputation tracking
+  const processPostComments = async (post: ClassifiedPost): Promise<ClassifiedComment[]> => {
+    const allComments = await collector.getPostComments(post.id, 'top');
+
+    // Filter: upvotes >= 5 (minimum community validation)
+    const qualityComments = allComments.filter(c => c.upvotes >= 5);
+
+    // Classify
+    const classifiedComments: ClassifiedComment[] = qualityComments
       .map(comment => classifyCommentWithHeuristics(comment, post.classification.topic));
-    const topComments = classifiedComments
+
+    // Detect spam comments
+    const spamComments = classifiedComments.filter(c => isSpamComment(c));
+    allSpamComments.push(...spamComments);
+
+    // Filter out spam
+    const nonSpamComments = classifiedComments.filter(c => !isSpamComment(c));
+
+    // Sort and select top 3
+    const topComments = nonSpamComments
       .sort((a, b) => b.upvotes - a.upvotes)
       .slice(0, 3);
+
+    // Collect featured comments for later tracking
+    allFeaturedComments.push(...topComments);
+
+    return topComments;
+  };
+
+  // Process fresh posts
+  for (const { post } of fresh) {
+    const topComments = await processPostComments(post);
 
     freshEntries.push({
       post,
@@ -125,13 +151,7 @@ async function processDailyDigest(options: ProcessOptions = {}) {
 
   // Process trending posts
   for (const { post } of trending) {
-    const comments = await collector.getPostComments(post.id, 'top');
-    const classifiedComments: ClassifiedComment[] = comments
-      .slice(0, 10)
-      .map(comment => classifyCommentWithHeuristics(comment, post.classification.topic));
-    const topComments = classifiedComments
-      .sort((a, b) => b.upvotes - a.upvotes)
-      .slice(0, 3);
+    const topComments = await processPostComments(post);
 
     trendingEntries.push({
       post,
@@ -141,6 +161,7 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   }
 
   console.log(`  → Processed ${freshEntries.length} fresh + ${trendingEntries.length} trending posts`);
+  console.log(`  → Found ${allFeaturedComments.length} featured comments, ${allSpamComments.length} spam comments`);
 
   // Combine for backward compatibility
   const digestEntries = [...freshEntries, ...trendingEntries];
@@ -160,7 +181,7 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   if (language === 'en') {
     console.log('\n⭐ Updating reputation data...');
 
-    // Record digest appearances
+    // Record digest appearances (posts)
     for (const entry of digestEntries) {
       const authorName = entry.post.author?.name;
       if (authorName) {
@@ -173,7 +194,28 @@ async function processDailyDigest(options: ProcessOptions = {}) {
       }
     }
 
-    // Record spam blocks
+    // Record featured comments
+    for (const comment of allFeaturedComments) {
+      const authorName = comment.author?.name;
+      if (authorName) {
+        // Find the post this comment belongs to
+        const parentEntry = digestEntries.find(e =>
+          e.top_comments?.some(c => c.id === comment.id)
+        );
+
+        if (parentEntry) {
+          recordCommentAppearance(authorName, today, {
+            id: comment.id,
+            postId: comment.post_id,
+            postTitle: parentEntry.post.title,
+            content: comment.content,
+            upvotes: comment.upvotes
+          });
+        }
+      }
+    }
+
+    // Record spam blocks (posts)
     const spamPosts = classifiedPosts.filter(post =>
       !isLowQualityPost(post) && isSpamPost(post)
     );
@@ -191,6 +233,26 @@ async function processDailyDigest(options: ProcessOptions = {}) {
           id: post.id,
           title: post.title,
           created_at: post.created_at
+        });
+      }
+    }
+
+    // Record spam comments
+    for (const comment of allSpamComments) {
+      const authorName = comment.author?.name;
+      if (authorName) {
+        // Detect reason from content
+        let reason = 'Spam comment detected';
+        if (/pump\.fun|pumpfun|token.*launch/i.test(comment.content)) {
+          reason = 'Crypto promotion in comment';
+        } else if (/btc|bitcoin.*intel|price|dca/i.test(comment.content)) {
+          reason = 'Crypto trading signals in comment';
+        }
+
+        recordCommentSpam(authorName, today, reason, {
+          id: comment.id,
+          postId: comment.post_id,
+          content: comment.content
         });
       }
     }
