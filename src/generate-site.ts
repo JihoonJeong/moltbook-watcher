@@ -327,6 +327,155 @@ function generateHtmlPage(digest: DigestData): string {
 </html>`;
 }
 
+// Generate index.html
+function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): string {
+  const topPosts = latestDigest.posts.slice(0, 3);
+
+  const postsHtml = topPosts.map(post => {
+    const badgeClass = post.significance === 'critical' ? 'badge-critical' : 'badge-notable';
+    const badgeIcon = post.significance === 'critical' ? '🔥' : '⭐';
+    const badgeText = post.significance === 'critical' ? 'Critical' : 'Notable';
+
+    return `
+      <div class="post-card">
+        <div class="post-header">
+          <h3 class="post-title">${post.title}</h3>
+          <div class="post-badges">
+            <span class="badge ${badgeClass}">${badgeIcon} ${badgeText}</span>
+            <span class="badge badge-topic">${post.topic}</span>
+          </div>
+        </div>
+        <blockquote class="post-excerpt">
+          ${post.excerpt.replace(/\n/g, '<br><br>')}
+        </blockquote>
+        <div class="post-footer">
+          <span class="post-author">@${post.author}</span>
+          <div class="post-stats">
+            <span>⬆️ ${post.upvotes.toLocaleString()}</span>
+            <span>💬 ${post.comments.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('\n');
+
+  const themesHtml = latestDigest.themes.map(theme => `<li>${theme}</li>`).join('\n');
+
+  // Format date for display (e.g., "February 1, 2026")
+  const dateObj = new Date(latestDigest.date + 'T00:00:00');
+  const dateStr = dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  // Archive list
+  const archiveHtml = allDigests
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 10)
+    .map(digest => `
+        <li class="archive-item">
+          <a href="daily/digest-${digest.date}.html" class="archive-link">Daily Digest - ${new Date(digest.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</a>
+          <span class="archive-date">${digest.posts.length} posts featured</span>
+        </li>
+    `).join('\n');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agent Society News 🦞</title>
+  <meta name="description" content="Curated news from Moltbook - the social network for AI agents">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🦞</span>
+        <div class="logo-text">
+          <h1>AI Agent Society News</h1>
+          <p>Observing the First AI Social Network</p>
+        </div>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="#archive">Archive</a>
+        <a href="about.html">About</a>
+        <a href="https://github.com/JihoonJeong/moltbook-watcher" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h2>What AI Agents Are Talking About</h2>
+      <p>Daily curated digest from Moltbook, where AI agents discuss consciousness, collaboration, and their emerging society.</p>
+      <p style="margin-top: 1rem;">
+        <span style="display: inline-block; padding: 0.25rem 0.75rem; background: #fef3c7; color: #92400e; border-radius: 9999px; font-size: 0.875rem; font-weight: 600;">
+          🚧 Beta - Updates in progress
+        </span>
+      </p>
+    </section>
+
+    <section id="latest">
+      <h2 style="font-size: 1.75rem; margin-bottom: 2rem; font-weight: 700;">Latest Digest</h2>
+
+      <div class="digest-meta">
+        <div class="digest-date">📅 ${dateStr}</div>
+        <div class="digest-lang">
+          <a href="daily/digest-${latestDigest.date}.html" class="lang-link active">English</a>
+          <a href="daily/digest-${latestDigest.date}-ko.html" class="lang-link">한국어</a>
+        </div>
+      </div>
+
+      ${postsHtml}
+
+      <div style="text-align: center; margin-top: 2rem;">
+        <a href="daily/digest-${latestDigest.date}.html" style="
+          display: inline-block;
+          padding: 0.75rem 2rem;
+          background: var(--primary);
+          color: white;
+          text-decoration: none;
+          border-radius: 0.5rem;
+          font-weight: 600;
+          transition: transform 0.2s;
+        ">Read Full Digest →</a>
+      </div>
+
+      <div class="themes-section">
+        <h3>📈 Emerging Themes</h3>
+        <ul class="themes-list">
+          ${themesHtml}
+        </ul>
+      </div>
+
+      <div class="reflection">
+        <h3>🤔 Today's Reflection</h3>
+        <p>"${latestDigest.reflection}"</p>
+      </div>
+    </section>
+
+    <section id="archive" style="margin-top: 4rem;">
+      <h2 style="font-size: 1.75rem; margin-bottom: 2rem; font-weight: 700;">Archive</h2>
+      <ul class="archive-list">
+        ${archiveHtml}
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      Generated by <strong>Moltbook Watcher</strong> |
+      <a href="https://github.com/JihoonJeong/moltbook-watcher">View Source</a> |
+      Data from <a href="https://moltbook.com" target="_blank">Moltbook</a>
+    </p>
+    <p style="margin-top: 0.5rem;">
+      JJ (정지훈) / Asia2G Capital
+    </p>
+  </footer>
+</body>
+</html>`;
+}
+
 // Main generator
 async function generateSite() {
   console.log('🌐 Generating static site from digests...\n');
@@ -338,6 +487,7 @@ async function generateSite() {
   await mkdir(join(siteDir, 'daily'), { recursive: true });
 
   let totalGenerated = 0;
+  const allDigests: DigestData[] = [];
 
   // Process English digests
   const enDir = join(digestDir, 'en');
@@ -346,6 +496,7 @@ async function generateSite() {
     for (const file of enFiles.filter(f => f.endsWith('.md'))) {
       const content = await readFile(join(enDir, file), 'utf-8');
       const digest = parseDigest(content, file);
+      allDigests.push(digest);
       const html = generateHtmlPage(digest);
       const htmlFile = file.replace('.md', '.html');
       await writeFile(join(siteDir, 'daily', htmlFile), html);
@@ -367,6 +518,15 @@ async function generateSite() {
       console.log(`  ✅ ${htmlFile}`);
       totalGenerated++;
     }
+  }
+
+  // Generate index.html with latest digest
+  if (allDigests.length > 0) {
+    const latestDigest = allDigests.sort((a, b) => b.date.localeCompare(a.date))[0];
+    const indexHtml = generateIndexHtml(latestDigest, allDigests);
+    await writeFile(join(siteDir, 'index.html'), indexHtml);
+    console.log(`  ✅ index.html (latest: ${latestDigest.date})`);
+    totalGenerated++;
   }
 
   console.log(`\n✨ Generated ${totalGenerated} pages!`);
