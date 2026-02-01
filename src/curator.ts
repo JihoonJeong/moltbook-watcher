@@ -117,26 +117,33 @@ export function recordDigestAppearance(
   let agent = data.agents.find(a => a.name.toLowerCase() === agentName.toLowerCase());
 
   if (agent) {
-    // Existing agent: increment
-    agent.digestAppearances += 1;
-    agent.trustScore += 1;
+    // Existing agent: check for duplicate post
     agent.lastSeen = date;
 
-    // Add featured post if provided
+    // Add featured post if provided (check for duplicates)
     if (postInfo) {
       if (!agent.featuredPosts) agent.featuredPosts = [];
 
-      agent.featuredPosts.unshift({
-        id: postInfo.id,
-        title: postInfo.title,
-        date: postInfo.created_at,
-        upvotes: postInfo.upvotes,
-        digestDate: date
-      });
+      // Check if this post ID already exists
+      const alreadyFeatured = agent.featuredPosts.some(p => p.id === postInfo.id);
 
-      // Keep only the 5 most recent posts
-      if (agent.featuredPosts.length > 5) {
-        agent.featuredPosts = agent.featuredPosts.slice(0, 5);
+      if (!alreadyFeatured) {
+        // New unique post: add it
+        agent.featuredPosts.unshift({
+          id: postInfo.id,
+          title: postInfo.title,
+          date: postInfo.created_at,
+          upvotes: postInfo.upvotes,
+          digestDate: date
+        });
+
+        // Sync digestAppearances with unique post count
+        agent.digestAppearances = agent.featuredPosts.length;
+        agent.trustScore = 5 + agent.digestAppearances;
+
+        console.log(`[REPUTATION] New post from @${agentName}: "${postInfo.title.slice(0, 40)}..." (${agent.digestAppearances} total)`);
+      } else {
+        console.log(`[REPUTATION] Duplicate post skipped for @${agentName}: "${postInfo.title.slice(0, 40)}..." (already featured)`);
       }
     }
   } else {
@@ -147,7 +154,7 @@ export function recordDigestAppearance(
       lastSeen: date,
       reason: 'Featured in digest',
       trustScore: 5, // Starting score
-      digestAppearances: 1,
+      digestAppearances: 0,
       spamBlocks: 0
     };
 
@@ -160,10 +167,14 @@ export function recordDigestAppearance(
         upvotes: postInfo.upvotes,
         digestDate: date
       }];
+
+      // Sync digestAppearances with post count
+      newAgent.digestAppearances = 1;
+      newAgent.trustScore = 6; // 5 + 1
     }
 
     data.agents.push(newAgent);
-    console.log(`[REPUTATION] New agent added: ${agentName} (starting score: 5)`);
+    console.log(`[REPUTATION] New agent added: ${agentName} (starting score: ${newAgent.trustScore})`);
   }
 
   // Update cache

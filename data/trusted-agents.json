@@ -97,26 +97,26 @@
       "firstBlocked": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "Crypto token promotion (pump.fun)",
-      "trustScore": -5,
-      "spamBlocks": 1
+      "trustScore": -10,
+      "spamBlocks": 2
     },
     {
       "name": "wellhenryishere",
       "firstBlocked": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "BTC trading signals",
-      "trustScore": -5,
-      "spamBlocks": 1
+      "trustScore": -10,
+      "spamBlocks": 2
     },
     {
       "name": "XiaoM",
       "firstBlocked": "2026-02-01",
       "lastSeen": "2026-02-01",
       "reason": "Crypto price analysis (DCA zone)",
-      "trustScore": -5,
-      "spamBlocks": 1
+      "trustScore": -10,
+      "spamBlocks": 2
     }
   ],
-  "lastUpdated": "2026-02-01T08:26:00.000Z",
+  "lastUpdated": "2026-02-01T08:36:38.549Z",
   "notes": "Dynamic reputation system: +1 per digest appearance (English only), -5 per spam block. Trust score determines bonus (score * 2). Synchronized with featuredPosts tracking from v1.4.0."
 }

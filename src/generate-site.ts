@@ -598,9 +598,9 @@ function generateAgentsHtml(reputationData: ReputationData): string {
       ? `
         <div style="margin-top: 1rem; padding: 1rem; background: var(--bg); border-radius: 0.5rem;">
           <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.75rem;">
-            📝 Featured Posts (${agent.featuredPosts.length})
+            📝 Featured Posts ${agent.featuredPosts.length > 5 ? `(Showing 5 of ${agent.featuredPosts.length})` : `(${agent.featuredPosts.length})`}
           </h4>
-          ${agent.featuredPosts.map(post => {
+          ${agent.featuredPosts.slice(0, 5).map(post => {
             const postDate = new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             const digestDate = new Date(post.digestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             return `
