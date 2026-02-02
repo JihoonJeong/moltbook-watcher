@@ -188,10 +188,36 @@ export const DEFAULT_CONFIG: MoltbookConfig = {
     feeds: ['hot', 'new', 'top'],
     submolts_to_watch: [
       'general',
-      'introductions', 
+      'introductions',
       'blesstheirhearts',
       'lobsterchurch',
       'agentlegaladvice'
     ]
   }
 };
+
+// --- Submolt Tracking Types ---
+
+export interface SubmoltDailyStats {
+  date: string;
+  posts: number;
+  upvotes: number;
+  comments: number;
+}
+
+export interface SubmoltInfo {
+  name: string;
+  displayName: string;
+  firstSeen: string;
+  lastSeen: string;
+  postCount: number;
+  totalUpvotes: number;
+  totalComments: number;
+  featuredCount: number;
+  dailyStats: SubmoltDailyStats[];
+}
+
+export interface SubmoltData {
+  submolts: SubmoltInfo[];
+  lastUpdated: string;
+}

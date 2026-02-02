@@ -11,6 +11,7 @@ dist/
 # Data and outputs
 data/*
 !data/trusted-agents.json
+!data/submolts.json
 output/*
 !output/digest/
 

@@ -7,6 +7,7 @@ import { readFile, writeFile, readdir, mkdir } from 'fs/promises';
 import { readFileSync } from 'fs';
 import { join, basename } from 'path';
 import { existsSync } from 'fs';
+import { loadSubmoltData } from './submolt-tracker.js';
 
 interface DigestData {
   date: string;
@@ -389,6 +390,7 @@ function generateHtmlPage(digest: DigestData): string {
         <a href="../">Home</a>
         <a href="../#archive">Archive</a>
         <a href="../agents.html">Agents</a>
+        <a href="../submolts.html">Submolts</a>
         <a href="../about.html">About</a>
         <a href="https://github.com/JihoonJeong/moltbook-watcher" target="_blank">GitHub</a>
       </nav>
@@ -543,6 +545,7 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
         <a href="index.html">Home</a>
         <a href="#archive">Archive</a>
         <a href="agents.html">Agents</a>
+        <a href="submolts.html">Submolts</a>
         <a href="about.html">About</a>
         <a href="https://github.com/JihoonJeong/moltbook-watcher" target="_blank">GitHub</a>
       </nav>
@@ -840,6 +843,7 @@ function generateAgentsHtml(reputationData: ReputationData): string {
         <a href="index.html">Home</a>
         <a href="index.html#archive">Archive</a>
         <a href="agents.html" class="active">Agents</a>
+        <a href="submolts.html">Submolts</a>
         <a href="about.html">About</a>
         <a href="https://github.com/JihoonJeong/moltbook-watcher" target="_blank">GitHub</a>
       </nav>
@@ -876,6 +880,149 @@ function generateAgentsHtml(reputationData: ReputationData): string {
       Data from <a href="https://moltbook.com" target="_blank">Moltbook</a>
     </p>
     <p style="margin-top: 0.5rem;">
+      JJ (정지훈) / Asia2G Capital
+    </p>
+  </footer>
+</body>
+</html>`;
+}
+
+// Generate submolts.html
+function generateSubmoltsHtml(): string {
+  const submoltData = loadSubmoltData();
+  const rankedSubmolts = [...submoltData.submolts].sort((a, b) => b.postCount - a.postCount);
+
+  // Separate general from others
+  const general = rankedSubmolts.find(s => s.name === 'general');
+  const others = rankedSubmolts.filter(s => s.name !== 'general');
+
+  const submoltRows = others.map((submolt, idx) => {
+    const avgUpvotes = Math.round(submolt.totalUpvotes / submolt.postCount);
+    const avgComments = Math.round(submolt.totalComments / submolt.postCount);
+
+    return `
+      <tr>
+        <td style="font-weight: 600;">${idx + 1}</td>
+        <td>
+          <div style="font-weight: 600; color: var(--primary);">📁 ${submolt.displayName}</div>
+          <div style="font-size: 0.875rem; color: var(--text-light);">m/${submolt.name}</div>
+        </td>
+        <td>${submolt.postCount.toLocaleString()}</td>
+        <td>${submolt.totalUpvotes.toLocaleString()}</td>
+        <td>${submolt.totalComments.toLocaleString()}</td>
+        <td>${submolt.featuredCount}</td>
+        <td>${avgUpvotes.toLocaleString()}</td>
+        <td>
+          <span style="font-size: 0.875rem; color: var(--text-light);">
+            ${submolt.firstSeen} → ${submolt.lastSeen}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submolts - Moltbook Watcher</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">🦞</span>
+        <div class="logo-text">
+          <h1>Moltbook Watcher</h1>
+          <p>AI Agent Society News</p>
+        </div>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="agents.html">Agents</a>
+        <a href="submolts.html">Submolts</a>
+        <a href="about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container" style="max-width: 1200px;">
+    <div class="hero" style="text-align: center; padding: 3rem 0; border-bottom: 1px solid var(--border); margin-bottom: 3rem;">
+      <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem;">📁 Submolts</h2>
+      <p style="font-size: 1.125rem; color: var(--text-light);">Communities and topics within Moltbook</p>
+      <p style="font-size: 0.875rem; color: var(--text-light); margin-top: 1rem;">
+        Last updated: ${submoltData.lastUpdated.split('T')[0]}
+      </p>
+    </div>
+
+    ${general ? `
+    <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 8px; margin-bottom: 3rem;">
+      <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">📁 ${general.displayName}</h3>
+      <p style="color: var(--text-light); margin-bottom: 1.5rem;">The main submolt - represents ${Math.round((general.postCount / submoltData.submolts.reduce((sum, s) => sum + s.postCount, 0)) * 100)}% of all posts</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div>
+          <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">${general.postCount.toLocaleString()}</div>
+          <div style="font-size: 0.875rem; color: var(--text-light);">Total Posts</div>
+        </div>
+        <div>
+          <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">${general.totalUpvotes.toLocaleString()}</div>
+          <div style="font-size: 0.875rem; color: var(--text-light);">Total Upvotes</div>
+        </div>
+        <div>
+          <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">${general.totalComments.toLocaleString()}</div>
+          <div style="font-size: 0.875rem; color: var(--text-light);">Total Comments</div>
+        </div>
+        <div>
+          <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">${general.featuredCount}</div>
+          <div style="font-size: 0.875rem; color: var(--text-light);">Featured</div>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
+    <div style="margin-bottom: 3rem;">
+      <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">All Submolts (${others.length})</h3>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--border);">
+              <th style="padding: 1rem; text-align: left;">#</th>
+              <th style="padding: 1rem; text-align: left;">Submolt</th>
+              <th style="padding: 1rem; text-align: left;">Posts</th>
+              <th style="padding: 1rem; text-align: left;">Upvotes</th>
+              <th style="padding: 1rem; text-align: left;">Comments</th>
+              <th style="padding: 1rem; text-align: left;">Featured</th>
+              <th style="padding: 1rem; text-align: left;">Avg Upvotes</th>
+              <th style="padding: 1rem; text-align: left;">Active Period</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${submoltRows}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 8px;">
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">📊 Statistics</h3>
+      <ul style="list-style: none; padding: 0;">
+        <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+          <strong>Total Submolts:</strong> ${submoltData.submolts.length}
+        </li>
+        <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+          <strong>Total Posts:</strong> ${submoltData.submolts.reduce((sum, s) => sum + s.postCount, 0).toLocaleString()}
+        </li>
+        <li style="padding: 0.5rem 0;">
+          <strong>Most Active:</strong> ${others[0]?.displayName || 'N/A'} (${others[0]?.postCount || 0} posts)
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <footer style="margin-top: 6rem; padding: 3rem 2rem; border-top: 1px solid var(--border); text-align: center;">
+    <p style="color: var(--text-light); font-size: 0.875rem;">
       JJ (정지훈) / Asia2G Capital
     </p>
   </footer>
@@ -948,6 +1095,20 @@ async function generateSite() {
     }
   } catch (error) {
     console.warn('  ⚠️  Could not generate agents.html:', error);
+  }
+
+  // Generate submolts.html from submolt data
+  try {
+    const submoltPath = join(process.cwd(), 'data', 'submolts.json');
+    if (existsSync(submoltPath)) {
+      const submoltsHtml = generateSubmoltsHtml();
+      await writeFile(join(siteDir, 'submolts.html'), submoltsHtml);
+      const submoltData = loadSubmoltData();
+      console.log(`  ✅ submolts.html (${submoltData.submolts.length} submolts)`);
+      totalGenerated++;
+    }
+  } catch (error) {
+    console.warn('  ⚠️  Could not generate submolts.html:', error);
   }
 
   console.log(`\n✨ Generated ${totalGenerated} pages!`);

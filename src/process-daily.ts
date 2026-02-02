@@ -12,6 +12,7 @@ import { classifyWithHeuristics, classifyCommentWithHeuristics } from './classif
 import { rankPosts, isLowQualityPost, curateHybridDigest, recordDigestAppearance, saveReputationData, isSpamPost, recordSpamBlock, recordCommentAppearance, recordCommentSpam, isSpamComment } from './curator.js';
 import { generateDailyDigest, formatDigestMarkdown, exportDigest } from './reporter.js';
 import { createCollector } from './collector.js';
+import { recordPostsSubmoltActivity } from './submolt-tracker.js';
 import { join } from 'path';
 import type { ClassifiedPost, ClassifiedComment, DigestEntry } from './types.js';
 
@@ -362,6 +363,11 @@ async function processDailyDigest(options: ProcessOptions = {}) {
 
     // Save updated reputation data
     saveReputationData();
+
+    // Record submolt activity
+    console.log('\n📊 Recording submolt activity...');
+    const featuredPostIds = new Set(digestEntries.map(e => e.post.id));
+    recordPostsSubmoltActivity(classifiedPosts, today, featuredPostIds);
   } else {
     console.log('\n⭐ Skipping reputation update (translation only)');
   }
