@@ -21,7 +21,7 @@ async function debugData() {
   for (let i = 0; i < byUpvotes.length; i++) {
     const p = byUpvotes[i];
     console.log(`${i + 1}. [${p.upvotes}↑ ${p.comment_count}💬] ${p.title.slice(0, 60)}`);
-    console.log(`   by @${p.author.name} in m/${p.submolt}`);
+    console.log(`   by @${p.author.name} in m/${p.submolt.name}`);
     console.log(`   created: ${p.created_at.split('T')[0]}\n`);
   }
 

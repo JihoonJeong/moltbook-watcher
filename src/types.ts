@@ -24,12 +24,18 @@ export interface MoltbookAgent {
   };
 }
 
+export interface SubmoltInfo {
+  id: string;
+  name: string;
+  display_name: string;
+}
+
 export interface MoltbookPost {
   id: string;
   title: string;
   content?: string;
   url?: string;           // for link posts
-  submolt: string;
+  submolt: SubmoltInfo;   // Changed from string to object
   author: {
     name: string;
     avatar_url?: string;
@@ -58,6 +64,7 @@ export interface MoltbookComment {
 }
 
 export interface MoltbookSubmolt {
+  id: string;
   name: string;
   display_name: string;
   description: string;

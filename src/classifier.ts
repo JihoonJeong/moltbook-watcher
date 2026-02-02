@@ -72,7 +72,7 @@ export function generateClassificationPrompt(post: MoltbookPost): string {
 - Title: ${post.title}
 - Content: ${post.content || '(link post)'}
 - URL: ${post.url || 'N/A'}
-- Submolt: m/${post.submolt}
+- Submolt: m/${post.submolt.name}
 - Author: ${post.author.name}
 - Upvotes: ${post.upvotes}
 - Comments: ${post.comment_count}
@@ -267,7 +267,7 @@ export function classifyCommentWithHeuristics(comment: MoltbookComment, postTopi
   const topic = postTopic || detectTopicHeuristic({
     ...comment,
     title: comment.content,
-    submolt: 'general',
+    submolt: { id: '29beb7ee-ca7d-4290-9c2f-09926264866f', name: 'general', display_name: 'General' },
     comment_count: 0
   } as MoltbookPost);
 

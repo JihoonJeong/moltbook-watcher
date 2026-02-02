@@ -16,6 +16,7 @@ interface DigestData {
     title: string;
     topic: string;
     significance: string;
+    submolt?: string;  // Submolt name (e.g., "Shellraiser", "KingMolt")
     author: string;
     upvotes: number;
     comments: number;
@@ -162,9 +163,30 @@ function parseDigest(markdown: string, filename: string): DigestData {
     const titleMatch = section.match(/### \d+\. (.+)/);
     if (!titleMatch) continue;
 
-    // Extract significance and topic
-    const metaMatch = section.match(/(.+?) \| (.+?)\n/);
-    if (!metaMatch) continue;
+    // Extract submolt (optional), significance, and topic
+    // Format can be:
+    // - With submolt: "📁 Shellraiser | 🔥 Critical | Existential"
+    // - Without: "🔥 Critical | Existential"
+    const metaLineMatch = section.match(/\n(.+? \| .+?)\n/);
+    if (!metaLineMatch) continue;
+
+    const metaParts = metaLineMatch[1].split(' | ');
+    let submolt: string | undefined;
+    let significance: string;
+    let topic: string;
+
+    if (metaParts.length === 3) {
+      // Has submolt: "📁 Shellraiser | 🔥 Critical | Topic"
+      submolt = metaParts[0].replace('📁 ', '').trim();
+      significance = metaParts[1];
+      topic = metaParts[2];
+    } else if (metaParts.length === 2) {
+      // No submolt: "🔥 Critical | Topic"
+      significance = metaParts[0];
+      topic = metaParts[1];
+    } else {
+      continue;
+    }
 
     // Extract excerpt
     const excerptMatch = section.match(/\n> (.+?)\n\n—/s);
@@ -194,8 +216,9 @@ function parseDigest(markdown: string, filename: string): DigestData {
 
     posts.push({
       title: titleMatch[1],
-      significance: metaMatch[1].includes('Critical') || metaMatch[1].includes('긴급') ? 'critical' : 'notable',
-      topic: metaMatch[2],
+      significance: significance.includes('Critical') || significance.includes('긴급') ? 'critical' : 'notable',
+      topic: topic,
+      submolt: submolt,
       excerpt: excerptMatch ? excerptMatch[1].slice(0, 200) + '...' : '',
       author: statsMatch[1],
       upvotes: parseInt(statsMatch[2]),
@@ -275,11 +298,17 @@ function generateHtmlPage(digest: DigestData): string {
       `
       : '';
 
+    // Submolt badge (only show if not general)
+    const submoltBadge = post.submolt
+      ? `<span class="badge badge-submolt">📁 ${post.submolt}</span>`
+      : '';
+
     return `
       <div class="post-card">
         <div class="post-header">
           <h3 class="post-title">${idx + 1}. ${post.title}</h3>
           <div class="post-badges">
+            ${submoltBadge}
             <span class="badge ${badgeClass}">${badgeIcon} ${badgeText}</span>
             <span class="badge badge-topic">${post.topic}</span>
           </div>
@@ -434,6 +463,11 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
     const badgeIcon = post.significance === 'critical' ? '🔥' : '⭐';
     const badgeText = post.significance === 'critical' ? 'Critical' : 'Notable';
 
+    // Submolt badge (only show if not general)
+    const submoltBadge = post.submolt
+      ? `<span class="badge badge-submolt">📁 ${post.submolt}</span>`
+      : '';
+
     const permalinkHtml = post.permalink
       ? `
         <div style="margin-top: 1rem;">
@@ -449,6 +483,7 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
         <div class="post-header">
           <h3 class="post-title">${post.title}</h3>
           <div class="post-badges">
+            ${submoltBadge}
             <span class="badge ${badgeClass}">${badgeIcon} ${badgeText}</span>
             <span class="badge badge-topic">${post.topic}</span>
           </div>

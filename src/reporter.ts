@@ -179,7 +179,12 @@ export function formatDigestMarkdown(digest: DailyDigest): string {
 
     entryLines.push(`### ${index + 1}. ${post.title}`);
     entryLines.push('');
-    entryLines.push(`${sigLabels[classification.significance]} | ${topicLabels[classification.topic]}`);
+
+    // Submolt badge (skip 'general' as it's the majority)
+    const submoltBadge = post.submolt.name !== 'general'
+      ? `📁 ${post.submolt.display_name} | `
+      : '';
+    entryLines.push(`${submoltBadge}${sigLabels[classification.significance]} | ${topicLabels[classification.topic]}`);
     entryLines.push('');
 
     if (post.content) {

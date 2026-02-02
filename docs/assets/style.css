@@ -199,6 +199,12 @@ nav a:hover {
   color: var(--text-light);
 }
 
+.badge-submolt {
+  background: #ede9fe;
+  color: #7c3aed;
+  font-weight: 600;
+}
+
 .post-excerpt {
   color: var(--text-light);
   margin-bottom: 1rem;
