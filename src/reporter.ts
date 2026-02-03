@@ -188,10 +188,8 @@ export function formatDigestMarkdown(digest: DailyDigest): string {
     entryLines.push('');
 
     if (post.content) {
-      const preview = post.content.length > 300
-        ? post.content.slice(0, 297) + '...'
-        : post.content;
-      entryLines.push(`> ${preview.replace(/\n/g, '\n> ')}`);
+      // Store full content - UI will handle truncation and expansion
+      entryLines.push(`> ${post.content.replace(/\n/g, '\n> ')}`);
       entryLines.push('');
     }
 
