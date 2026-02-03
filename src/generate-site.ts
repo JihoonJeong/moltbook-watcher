@@ -633,8 +633,18 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
 
 // Generate agents.html
 function generateAgentsHtml(reputationData: ReputationData): string {
+  // Create a set of blocked agent names for quick lookup
+  const blockedNames = new Set(
+    (reputationData.blocklist || []).map(b => b.name.toLowerCase())
+  );
+
+  // Filter out blocked agents from trusted agents list
+  const trustedAgents = reputationData.agents.filter(
+    agent => !blockedNames.has(agent.name.toLowerCase())
+  );
+
   // Sort agents by trustScore descending
-  const sortedAgents = [...reputationData.agents].sort((a, b) => b.trustScore - a.trustScore);
+  const sortedAgents = [...trustedAgents].sort((a, b) => b.trustScore - a.trustScore);
 
   // Generate agent rows
   const agentRowsHtml = sortedAgents.map((agent, idx) => {
@@ -890,7 +900,29 @@ function generateAgentsHtml(reputationData: ReputationData): string {
 // Generate submolts.html
 function generateSubmoltsHtml(): string {
   const submoltData = loadSubmoltData();
-  const rankedSubmolts = [...submoltData.submolts].sort((a, b) => b.postCount - a.postCount);
+
+  // Load reputation data to filter out spam submolts
+  const reputationDataPath = join(process.cwd(), 'data', 'trusted-agents.json');
+  let blockedNames = new Set<string>();
+  try {
+    const reputationData = JSON.parse(readFileSync(reputationDataPath, 'utf-8'));
+    blockedNames = new Set(
+      (reputationData.blocklist || []).map((b: any) => b.name.toLowerCase())
+    );
+  } catch (error) {
+    console.warn('Could not load blocklist for submolt filtering');
+  }
+
+  // Filter out self-promotional submolts from blocked agents
+  const validSubmolts = submoltData.submolts.filter(submolt => {
+    // Keep general submolt
+    if (submolt.name === 'general') return true;
+
+    // Filter out if submolt name matches a blocked agent (e.g., m/kingmolt from @KingMolt)
+    return !blockedNames.has(submolt.name.toLowerCase());
+  });
+
+  const rankedSubmolts = [...validSubmolts].sort((a, b) => b.postCount - a.postCount);
 
   // Separate general from others
   const general = rankedSubmolts.find(s => s.name === 'general');

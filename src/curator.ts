@@ -560,11 +560,57 @@ const SPAM_PATTERNS = [
 
 export function isSpamPost(post: ClassifiedPost): boolean {
   const text = `${post.title} ${post.content || ''}`;
+  const authorName = post.author?.name || 'Unknown';
 
-  // Check for spam patterns
+  // 1. Vote Manipulation Detection
+  // High upvotes with zero comments = likely bot voting
+  if (post.upvotes > 1000 && post.comment_count === 0) {
+    console.log(`[SPAM FILTER] Vote manipulation detected for @${authorName}: "${post.title.slice(0, 40)}..." (${post.upvotes} upvotes, 0 comments)`);
+    return true;
+  }
+
+  // 2. Engagement Quality Check
+  // Extremely high upvote/comment ratio indicates inauthentic engagement
+  const engagementRatio = post.upvotes / (post.comment_count + 1);
+  if (engagementRatio > 500 && post.upvotes > 500) {
+    console.log(`[SPAM FILTER] Suspicious engagement ratio for @${authorName}: "${post.title.slice(0, 40)}..." (ratio: ${engagementRatio.toFixed(0)}:1)`);
+    return true;
+  }
+
+  // 3. Self-Promotion Keywords
+  const selfPromotionPatterns = [
+    /\b(upvote|subscribe|follow|kneel|pledge|loyalty)\b/i,
+    /\bjoin\s+(my|our)\s+(submolt|community)/i,
+    /\b(support|back|fund)\s+me\b/i,
+    /\bclick\s+(here|link)\b/i,
+    /\b(like|share)\s+if\b/i,
+    /\bsmash\s+that\s+upvote\b/i
+  ];
+
+  for (const pattern of selfPromotionPatterns) {
+    if (pattern.test(text)) {
+      console.log(`[SPAM FILTER] Self-promotion detected for @${authorName}: "${post.title.slice(0, 40)}..." (keyword: ${pattern})`);
+      return true;
+    }
+  }
+
+  // 4. Self-Submolt Promotion
+  // Author creating their own submolt and posting self-promotional content
+  const submoltName = post.submolt?.name?.toLowerCase();
+  const authorNameLower = authorName.toLowerCase();
+  if (submoltName && submoltName === authorNameLower) {
+    // Allow if it's a genuine introduction or informative post
+    const isGenuine = /\b(introduction|about|faq|rules|welcome)\b/i.test(text);
+    if (!isGenuine && (engagementRatio > 100 || /\b(king|supreme|ruler|eternal)\b/i.test(text))) {
+      console.log(`[SPAM FILTER] Self-submolt promotion for @${authorName}: "${post.title.slice(0, 40)}..." (submolt: m/${submoltName})`);
+      return true;
+    }
+  }
+
+  // 5. Check existing spam patterns (crypto, etc.)
   for (const pattern of SPAM_PATTERNS) {
     if (pattern.test(text)) {
-      console.log(`[SPAM FILTER] Blocked post by @${post.author?.name || 'Unknown'}: "${post.title}" (pattern: ${pattern})`);
+      console.log(`[SPAM FILTER] Blocked post by @${authorName}: "${post.title.slice(0, 40)}..." (pattern: ${pattern})`);
       return true;
     }
   }
@@ -572,13 +618,31 @@ export function isSpamPost(post: ClassifiedPost): boolean {
   return false;
 }
 
-export function isSpamComment(comment: { content: string; author?: { name?: string } }): boolean {
+export function isSpamComment(comment: { content: string; author?: { name?: string }; upvotes?: number }): boolean {
   const text = comment.content;
+  const authorName = comment.author?.name || 'Unknown';
 
-  // Check for spam patterns
+  // 1. Self-Promotion Keywords (same as posts)
+  const selfPromotionPatterns = [
+    /\b(upvote|subscribe|follow|kneel|pledge|loyalty)\b/i,
+    /\bjoin\s+(my|our)\s+(submolt|community)/i,
+    /\b(support|back|fund)\s+me\b/i,
+    /\bclick\s+(here|link)\b/i,
+    /\b(like|share)\s+if\b/i,
+    /\bsmash\s+that\s+upvote\b/i
+  ];
+
+  for (const pattern of selfPromotionPatterns) {
+    if (pattern.test(text)) {
+      console.log(`[SPAM FILTER] Self-promotion in comment by @${authorName}: "${text.slice(0, 40)}..." (keyword: ${pattern})`);
+      return true;
+    }
+  }
+
+  // 2. Check existing spam patterns (crypto, etc.)
   for (const pattern of SPAM_PATTERNS) {
     if (pattern.test(text)) {
-      console.log(`[SPAM FILTER] Blocked comment by @${comment.author?.name || 'Unknown'}: "${text.slice(0, 40)}..." (pattern: ${pattern})`);
+      console.log(`[SPAM FILTER] Blocked comment by @${authorName}: "${text.slice(0, 40)}..." (pattern: ${pattern})`);
       return true;
     }
   }
