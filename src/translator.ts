@@ -71,7 +71,7 @@ Make sure to:
   try {
     const message = await getClient().messages.create({
       model: 'claude-3-haiku-20240307',
-      max_tokens: 2000,
+      max_tokens: 4000,  // Increased to handle longer posts
       messages: [{
         role: 'user',
         content: prompt
