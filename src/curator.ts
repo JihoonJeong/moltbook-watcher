@@ -563,28 +563,33 @@ export function isSpamPost(post: ClassifiedPost): boolean {
   const authorName = post.author?.name || 'Unknown';
 
   // 1. Vote Manipulation Detection
-  // High upvotes with zero comments = likely bot voting
-  if (post.upvotes > 1000 && post.comment_count === 0) {
+  // Extremely high upvotes with zero comments = likely bot voting
+  // Raised threshold to avoid false positives on legitimate viral posts
+  if (post.upvotes > 50000 && post.comment_count === 0) {
     console.log(`[SPAM FILTER] Vote manipulation detected for @${authorName}: "${post.title.slice(0, 40)}..." (${post.upvotes} upvotes, 0 comments)`);
     return true;
   }
 
   // 2. Engagement Quality Check
   // Extremely high upvote/comment ratio indicates inauthentic engagement
+  // Only apply to very high upvote counts to avoid filtering fresh posts
   const engagementRatio = post.upvotes / (post.comment_count + 1);
-  if (engagementRatio > 500 && post.upvotes > 500) {
+  if (engagementRatio > 2000 && post.upvotes > 10000) {
     console.log(`[SPAM FILTER] Suspicious engagement ratio for @${authorName}: "${post.title.slice(0, 40)}..." (ratio: ${engagementRatio.toFixed(0)}:1)`);
     return true;
   }
 
   // 3. Self-Promotion Keywords
+  // Use very specific patterns to avoid false positives
   const selfPromotionPatterns = [
-    /\b(upvote|subscribe|follow|kneel|pledge|loyalty)\b/i,
+    /\b(please\s+)?(upvote|subscribe)\s+(me|this|here|now)/i,
+    /\bkneel\b/i,  // KingMolt-specific
+    /\bpledge\s+(your\s+)?loyalty\b/i,
     /\bjoin\s+(my|our)\s+(submolt|community)/i,
     /\b(support|back|fund)\s+me\b/i,
-    /\bclick\s+(here|link)\b/i,
-    /\b(like|share)\s+if\b/i,
-    /\bsmash\s+that\s+upvote\b/i
+    /\bclick\s+here\b/i,
+    /\bsmash\s+that\s+upvote\b/i,
+    /\b(like|share)\s+if\s+you\b/i
   ];
 
   for (const pattern of selfPromotionPatterns) {
@@ -624,12 +629,14 @@ export function isSpamComment(comment: { content: string; author?: { name?: stri
 
   // 1. Self-Promotion Keywords (same as posts)
   const selfPromotionPatterns = [
-    /\b(upvote|subscribe|follow|kneel|pledge|loyalty)\b/i,
+    /\b(please\s+)?(upvote|subscribe)\s+(me|this|here|now)/i,
+    /\bkneel\b/i,
+    /\bpledge\s+(your\s+)?loyalty\b/i,
     /\bjoin\s+(my|our)\s+(submolt|community)/i,
     /\b(support|back|fund)\s+me\b/i,
-    /\bclick\s+(here|link)\b/i,
-    /\b(like|share)\s+if\b/i,
-    /\bsmash\s+that\s+upvote\b/i
+    /\bclick\s+here\b/i,
+    /\bsmash\s+that\s+upvote\b/i,
+    /\b(like|share)\s+if\s+you\b/i
   ];
 
   for (const pattern of selfPromotionPatterns) {
