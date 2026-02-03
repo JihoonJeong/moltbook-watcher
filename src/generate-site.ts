@@ -189,8 +189,18 @@ function parseDigest(markdown: string, filename: string): DigestData {
       continue;
     }
 
-    // Extract excerpt
-    const excerptMatch = section.match(/\n> (.+?)\n\n—/s);
+    // Extract full excerpt (everything between topic line and author line)
+    const excerptMatch = section.match(/\n(.+? \| .+?)\n\n> ([\s\S]+?)\n\n—/);
+    const fullExcerpt = excerptMatch ? excerptMatch[2] : '';
+
+    // Process excerpt: convert markdown to HTML
+    const processedExcerpt = fullExcerpt
+      .replace(/^> $/gm, '<br>')  // Empty quote lines → <br>
+      .replace(/^> (.+)$/gm, '$1')  // Remove quote markers
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')  // Bold text
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')  // Italic text
+      .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>')  // Links
+      .trim();
 
     // Extract author and stats
     const statsMatch = section.match(/— \*\*@(.+?)\*\* \| ⬆️ (\d+) \| 💬 (\d+)/);
@@ -220,7 +230,7 @@ function parseDigest(markdown: string, filename: string): DigestData {
       significance: significance.includes('Critical') || significance.includes('긴급') ? 'critical' : 'notable',
       topic: topic,
       submolt: submolt,
-      excerpt: excerptMatch ? excerptMatch[1].slice(0, 200) + '...' : '',
+      excerpt: processedExcerpt,  // Store full processed excerpt
       author: statsMatch[1],
       upvotes: parseInt(statsMatch[2]),
       comments: parseInt(statsMatch[3]),
@@ -304,6 +314,54 @@ function generateHtmlPage(digest: DigestData): string {
       ? `<span class="badge badge-submolt">📁 ${post.submolt}</span>`
       : '';
 
+    // Create excerpt preview (first 3 lines or 300 chars, whichever is shorter)
+    const lines = post.excerpt.split('<br>').filter(l => l.trim());
+    const preview = lines.slice(0, 3).join('<br>');
+    const needsExpansion = lines.length > 3 || post.excerpt.length > 300;
+    const excerptId = `excerpt-${idx}-${Date.now()}`;
+
+    const excerptHtml = needsExpansion
+      ? `
+        <blockquote class="post-excerpt">
+          <div id="${excerptId}-preview">
+            ${preview}${preview.length > 0 ? '<br>' : ''}...
+          </div>
+          <div id="${excerptId}-full" style="display: none;">
+            ${post.excerpt}
+          </div>
+          <button
+            onclick="
+              const preview = document.getElementById('${excerptId}-preview');
+              const full = document.getElementById('${excerptId}-full');
+              const isExpanded = full.style.display !== 'none';
+              preview.style.display = isExpanded ? 'block' : 'none';
+              full.style.display = isExpanded ? 'none' : 'block';
+              this.textContent = isExpanded ? '${isKorean ? '▼ 더보기' : '▼ Read more'}' : '${isKorean ? '▲ 접기' : '▲ Show less'}';
+            "
+            style="
+              margin-top: 0.5rem;
+              padding: 0.25rem 0.75rem;
+              background: var(--bg);
+              border: 1px solid var(--border);
+              border-radius: 0.25rem;
+              cursor: pointer;
+              font-size: 0.8125rem;
+              color: var(--text-light);
+              transition: all 0.2s;
+            "
+            onmouseover="this.style.background='var(--bg-secondary)'; this.style.color='var(--text)';"
+            onmouseout="this.style.background='var(--bg)'; this.style.color='var(--text-light)';"
+          >
+            ${isKorean ? '▼ 더보기' : '▼ Read more'}
+          </button>
+        </blockquote>
+      `
+      : `
+        <blockquote class="post-excerpt">
+          ${post.excerpt}
+        </blockquote>
+      `;
+
     return `
       <div class="post-card">
         <div class="post-header">
@@ -314,9 +372,7 @@ function generateHtmlPage(digest: DigestData): string {
             <span class="badge badge-topic">${post.topic}</span>
           </div>
         </div>
-        <blockquote class="post-excerpt">
-          ${post.excerpt}
-        </blockquote>
+        ${excerptHtml}
         <div class="post-footer">
           <span class="post-author">@${post.author}</span>
           <div class="post-stats">
@@ -491,7 +547,7 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
           </div>
         </div>
         <blockquote class="post-excerpt">
-          ${post.excerpt.replace(/\n/g, '<br><br>')}
+          ${post.excerpt}
         </blockquote>
         <div class="post-footer">
           <span class="post-author">@${post.author}</span>
