@@ -272,7 +272,7 @@ function generateHtmlPage(digest: DigestData): string {
        <a href="digest-${digest.date}-ko.html" class="lang-link">한국어</a>`;
 
   // Helper to render a post card
-  const renderPost = (post: DigestData['posts'][0], idx: number) => {
+  const renderPost = (post: DigestData['posts'][0], idx: number, section: string = '') => {
     const badgeClass = post.significance === 'critical' ? 'badge-critical' : 'badge-notable';
     const badgeIcon = post.significance === 'critical' ? '🔥' : '⭐';
     const badgeText = post.significance === 'critical'
@@ -318,7 +318,7 @@ function generateHtmlPage(digest: DigestData): string {
     const lines = post.excerpt.split('<br>').filter(l => l.trim());
     const preview = lines.slice(0, 3).join('<br>');
     const needsExpansion = lines.length > 3 || post.excerpt.length > 300;
-    const excerptId = `excerpt-${idx}-${Date.now()}`;
+    const excerptId = `excerpt-${section}${idx}-${Date.now()}`;
 
     const excerptHtml = needsExpansion
       ? `
@@ -400,7 +400,7 @@ function generateHtmlPage(digest: DigestData): string {
         <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">
           🆕 ${isKorean ? '신선한 소식 (Fresh Today)' : 'Fresh Today'}
         </h2>
-        ${freshPosts.map((post, idx) => renderPost(post, idx)).join('\n')}
+        ${freshPosts.map((post, idx) => renderPost(post, idx, 'fresh-')).join('\n')}
       </div>
     `;
 
@@ -412,13 +412,13 @@ function generateHtmlPage(digest: DigestData): string {
           <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">
             🔥 ${isKorean ? '계속 인기 (Still Trending)' : 'Still Trending'}
           </h2>
-          ${trendingPosts.map((post, idx) => renderPost(post, idx)).join('\n')}
+          ${trendingPosts.map((post, idx) => renderPost(post, idx, 'trending-')).join('\n')}
         </div>
       `;
     }
   } else {
     // Legacy format: all posts together
-    postsHtml = digest.posts.map((post, idx) => renderPost(post, idx)).join('\n');
+    postsHtml = digest.posts.map((post, idx) => renderPost(post, idx, '')).join('\n');
   }
 
   const themesHtml = digest.themes.map(theme => `<li>${theme}</li>`).join('\n');
