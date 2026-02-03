@@ -112,6 +112,11 @@ async function processDailyDigest(options: ProcessOptions = {}) {
 
   // Helper function to process comments with reputation tracking
   const processPostComments = async (post: ClassifiedPost): Promise<ClassifiedComment[]> => {
+    // Skip API call if post has no comments
+    if (post.comment_count === 0) {
+      return [];
+    }
+
     const allComments = await collector.getPostComments(post.id, 'top');
 
     // Classify all comments

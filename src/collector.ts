@@ -163,7 +163,8 @@ export class MoltbookCollector {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        console.error(`Failed to fetch comments: HTTP ${response.status}`);
+        // Silently return empty array - post may not be available yet on public API
+        // (This is expected for very recent posts or deleted posts)
         return [];
       }
 
