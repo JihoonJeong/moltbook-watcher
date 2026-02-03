@@ -1,6 +1,6 @@
 {
   "name": "moltbook-watcher",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Curation and analysis tool for Moltbook - the social network for AI agents",
   "type": "module",
   "main": "src/index.ts",
