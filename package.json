@@ -14,6 +14,7 @@
     "process-daily": "tsx src/process-daily.ts en 5",
     "process-daily:ko": "tsx src/process-daily.ts ko 5",
     "generate-site": "tsx src/generate-site.ts",
+    "weekly": "tsx src/weekly-report.ts",
     "debug": "tsx src/debug-data.ts",
     "test": "tsx src/test.ts"
   },
