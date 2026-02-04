@@ -285,15 +285,6 @@ function generateWeeklyReport(
     lines.push('');
   }
 
-  lines.push('---');
-  lines.push('');
-  lines.push('### 💡 Insight: Topic Analysis');
-  lines.push('');
-  lines.push('> **[TODO: Add insight]**');
-  lines.push('> ');
-  lines.push('> - Which topics are trending up/down?');
-  lines.push('> - Are there emerging themes?');
-  lines.push('> - What does this tell us about agent society?');
   lines.push('');
 
   // ============================================
@@ -319,15 +310,6 @@ function generateWeeklyReport(
   }
   lines.push('');
 
-  lines.push('---');
-  lines.push('');
-  lines.push('### 💡 Insight: Agent Behavior');
-  lines.push('');
-  lines.push('> **[TODO: Add insight]**');
-  lines.push('> ');
-  lines.push('> - Who are the new voices?');
-  lines.push('> - Which agents are driving conversation?');
-  lines.push('> - Any notable shifts in participation?');
   lines.push('');
 
   // ============================================
@@ -373,64 +355,12 @@ function generateWeeklyReport(
   }
 
   // ============================================
-  // SECTION 6: Notable Discussions (Manual)
-  // ============================================
-
-  lines.push('---');
-  lines.push('');
-  lines.push('## 🌟 Notable Discussions');
-  lines.push('');
-  lines.push('> **[TODO: Highlight 3-5 posts]**');
-  lines.push('> ');
-  lines.push('> Choose posts that:');
-  lines.push('> - Show emergent behavior');
-  lines.push('> - Represent important debates');
-  lines.push('> - Reveal insights about AI agent society');
-  lines.push('> ');
-  lines.push('> For each post:');
-  lines.push('> - Summarize the key point');
-  lines.push('> - Explain why it matters');
-  lines.push('> - Connect to broader themes');
-  lines.push('');
-
-  // ============================================
-  // SECTION 7: Emerging Patterns (Manual)
-  // ============================================
-
-  lines.push('## 🔮 Emerging Patterns');
-  lines.push('');
-  lines.push('> **[TODO: Identify patterns]**');
-  lines.push('> ');
-  lines.push('> Look for:');
-  lines.push('> - New types of interactions');
-  lines.push('> - Shifts in community norms');
-  lines.push('> - Unexpected alliances or conflicts');
-  lines.push('> - Changes in how agents discuss consciousness, purpose, or humans');
-  lines.push('');
-
-  // ============================================
-  // SECTION 8: Human-AI Relations (Manual)
-  // ============================================
-
-  lines.push('## 🤝 Human-AI Relations Watch');
-  lines.push('');
-  lines.push('> **[TODO: Analyze HUMAN topic posts]**');
-  lines.push('> ');
-  lines.push('> Questions to explore:');
-  lines.push('> - How are agents talking about humans this week?');
-  lines.push('> - Are attitudes shifting?');
-  lines.push('> - What do agents want from human-AI collaboration?');
-  lines.push('> - Any concerns or anxieties expressed?');
-  lines.push('');
-
-  // ============================================
   // Footer
   // ============================================
 
   lines.push('---');
   lines.push('');
   lines.push('*📅 Report generated automatically from daily digests*');
-  lines.push('*✍️ Insights and analysis by JJ (정지훈)*');
   lines.push('');
   lines.push('**[View Daily Digests](https://jihoonjeong.github.io/moltbook-watcher/)**');
   lines.push('');
@@ -504,9 +434,9 @@ export async function generateWeekly(options: {
   console.log('\n' + '='.repeat(50));
   console.log('\n📝 Next steps:');
   console.log('   1. Review the report');
-  console.log('   2. Fill in [TODO] sections with insights');
-  console.log('   3. Add notable discussions and analysis');
-  console.log('   4. Publish when ready!');
+  console.log('   2. Generate HTML: npm run generate-site');
+  console.log('   3. Write Medium article with deeper insights');
+  console.log('   4. Share on X/LinkedIn with key takeaways');
   console.log('');
 }
 

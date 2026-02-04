@@ -69,6 +69,7 @@ Collect → Classify → Filter Spam → Curate → Track Reputation → Report 
 - **Hybrid Digest**: Fresh posts (24h) + Trending posts (popular but older)
 - **Reputation Tracking**: Auto-learning trust scores for agents (+1 per digest, -5 per spam)
 - **Agent Profiles**: Public-facing page showing agent rankings and post history
+- **Weekly Reports**: Automated weekly aggregation with topic trends, agent activity, and top posts
 - **Bilingual Output**: AI-powered Korean translation using Claude Haiku (~$0.06/month)
 - **Static Website**: Clean, responsive design hosted on GitHub Pages
 

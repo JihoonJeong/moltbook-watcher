@@ -1481,10 +1481,304 @@ done
 ---
 
 *Session 11 작업: 2026-02-03 ~ 2026-02-04 완료 (4시간)*
-*Total Sessions: 11 (2026-01-31 ~ 2026-02-04)*
-*Total Time: ~24.5 hours*
+
+---
+
+# Session 12: v1.7.0 - Weekly Report Generation
+
+**Date**: 2026-02-04
+**Time**: 14:00 - 15:00 (1시간)
+**Focus**: Automated weekly report aggregation and HTML generation
+
+## 🎯 작업 목표
+
+Daily digest 데이터를 주간 단위로 집계하여 트렌드 및 인사이트 리포트 자동 생성
+
+### 배경 (Why)
+- Daily digest가 쌓이면서 주간 트렌드 파악 필요
+- 어떤 토픽과 에이전트가 주간 단위로 활발한지 보고 싶음
+- Medium/X/LinkedIn 공유용 데이터 중심 리포트 필요
+- GitHub Pages에 자동 발행하여 primary source로 활용
+
+### 요구사항
+1. 주간 통계 집계 (포스트 수, 평균 upvotes, 평균 comments)
+2. 토픽 트렌드 분석
+3. 에이전트 활동 랭킹
+4. Top posts 선정
+5. HTML 자동 생성 및 GitHub Pages 배포
+6. 네비게이션에 Weekly 링크 추가
+
+## 구현 상세
+
+### 1. Weekly Report Generator
+
+**파일**: `src/weekly-report.ts`
+
+**기능**:
+- Daily digest markdown 파싱
+- 주간 통계 집계
+- 토픽별 engagement 분석
+- 에이전트 활동 추적
+- Submolt 트렌드
+- Top posts 선정
+
+**핵심 함수**:
+```typescript
+function parseDigestMarkdown(filePath: string, date: string): DailyDigestData {
+  // Parse markdown digest
+  // Extract posts with title, topic, significance, author, stats
+}
+
+function aggregateWeeklyStats(dailyDigests: DailyDigestData[]): WeeklyStats {
+  // Aggregate statistics
+  // Topic counts and engagement
+  // Agent posts and engagement
+  // Submolt counts
+  // Top posts by upvotes and comments
+}
+
+function generateWeeklyReport(
+  weekStart: string,
+  weekEnd: string,
+  stats: WeeklyStats,
+  dailyDigests: DailyDigestData[]
+): string {
+  // Generate markdown report
+  // Week at a Glance
+  // Daily Post Distribution
+  // Topic Trends
+  // Most Active Agents
+  // Top Posts
+}
+```
+
+**출력 구조**:
+```markdown
+# 🦞 Moltbook Weekly Report
+**2026-01-31 — 2026-02-03**
+
+## 📊 Week at a Glance
+- Total Posts Featured: 35
+- Fresh Posts: 20 (57.1%)
+- Trending Posts: 15 (42.9%)
+- Average Upvotes: 26677.0
+- Average Comments: 2323.9
+
+### Daily Post Distribution
+| Date | Posts |
+|------|-------|
+| 2026-01-31 | 5 |
+| 2026-02-01 | 10 |
+...
+
+## 🔥 Topic Trends
+**Human-AI Relations** — 17 posts
+- Avg engagement: ⬆️ 23769.5, 💬 4344.9
+
+## 🤖 Most Active Agents
+| Rank | Agent | Posts | Total Upvotes | Total Comments |
+|------|-------|-------|---------------|----------------|
+| 1 | @Ronin | 4 | 2924 | 9740 |
+...
+
+## ⭐ Top Posts of the Week
+### Most Upvoted
+1. **@galnagli - responsible disclosure test**
+   - @Shellraiser | Agent Society | ⬆️ 316857 | 💬 762
+...
+```
+
+### 2. Weekly HTML Generation
+
+**파일**: `src/generate-site.ts`
+
+**새로운 함수**:
+```typescript
+function generateWeeklyHtml(markdown: string): string {
+  // Extract date range from title
+  // Convert markdown to HTML
+  // Handle tables, headers, lists, links
+  // Apply site styling
+  // Add navigation
+}
+```
+
+**HTML 특징**:
+- 기존 site styling 재사용
+- Table 렌더링 지원
+- Responsive design
+- Navigation with "Weekly" active state
+
+**Weekly Index Page**:
+- Auto-redirect to latest report
+- Archive 목록 표시
+- 모든 과거 weekly reports 링크
+
+### 3. 네비게이션 업데이트
+
+**수정된 페이지**:
+1. `index.html` - Home 네비게이션
+2. `agents.html` - Agents 네비게이션
+3. `submolts.html` - Submolts 네비게이션
+4. `digest-*.html` - Daily digest 네비게이션
+
+**추가된 링크**:
+```html
+<a href="weekly/">Weekly</a>
+```
+
+### 4. Package Scripts
+
+**파일**: `package.json`
+
+**추가된 스크립트**:
+```json
+{
+  "scripts": {
+    "weekly": "tsx src/weekly-report.ts"
+  }
+}
+```
+
+**사용법**:
+```bash
+# Generate weekly report (default: 7 days)
+npm run weekly
+
+# Generate for custom period
+npm run weekly 14  # 14 days
+
+# Full workflow
+npm run weekly
+npm run generate-site
+git add . && git commit && git push
+```
+
+## 워크플로우
+
+### 주간 리포트 발행 (매주 일요일)
+
+```bash
+# 1. Weekly report 생성
+npm run weekly
+
+# 2. HTML 생성
+npm run generate-site
+
+# 3. GitHub Pages 배포
+git add .
+git commit -m "chore: weekly report 2026-02-03"
+git push
+```
+
+### 다음 단계 (Manual)
+1. GitHub Pages에서 데이터 확인
+2. Medium 심층 분석 글 작성
+3. X/LinkedIn에 요약과 함께 공유
+
+## 테스트 결과
+
+### 1. Weekly Report 생성
+```bash
+npm run weekly
+
+# 출력
+📊 Generating Weekly Report
+==================================================
+
+📂 Loading digest files...
+  → Found 4 digest files
+
+📖 Parsing digest data...
+  → 2026-01-31: 5 posts
+  → 2026-02-01: 10 posts
+  → 2026-02-02: 10 posts
+  → 2026-02-03: 10 posts
+
+📊 Aggregating statistics...
+  → Total posts: 35
+  → Unique agents: 21
+  → Topics covered: 9
+
+📝 Generating report markdown...
+
+✅ Weekly report saved to: output/weekly/weekly-2026-02-03.md
+```
+
+### 2. HTML 생성
+```bash
+npm run generate-site
+
+# 출력
+✅ 1 weekly report(s) + index
+
+✨ Generated 13 pages!
+```
+
+**생성된 파일**:
+- `docs/weekly/weekly-2026-02-03.html`
+- `docs/weekly/index.html` (auto-redirect + archive)
+
+### 3. 네비게이션 확인
+- ✅ 모든 페이지에 "Weekly" 링크 표시
+- ✅ Weekly 페이지에서 "Weekly" active state
+- ✅ Index page로 자동 redirect
+
+## 파일 변경 내역
+
+### 신규 파일
+1. `src/weekly-report.ts` - Weekly report 생성 로직
+2. `output/weekly/weekly-2026-02-03.md` - Generated report
+3. `docs/weekly/weekly-2026-02-03.html` - HTML report
+4. `docs/weekly/index.html` - Weekly index page
+
+### 수정된 파일
+1. `src/generate-site.ts`
+   - `generateWeeklyHtml()` 추가
+   - Weekly 디렉토리 생성 및 HTML 변환
+   - Weekly index 페이지 생성
+   - 모든 페이지 네비게이션에 Weekly 링크 추가
+
+2. `package.json`
+   - version: 1.6.2 → 1.7.0
+   - "weekly" 스크립트 추가
+
+3. `CLAUDE.md`
+   - Weekly report 워크플로우 문서화
+   - 발행 채널 전략 명시
+
+## 최종 상태
+
+### 프로젝트 통계 (v1.7.0)
+- **완성도**: 100%
+- **총 커밋**: 41개 → **43개** (예상)
+- **릴리스**: v1.6.2 → **v1.7.0**
+- **HTML 페이지**: 12개 → **14개** (weekly + index)
+
+### 주요 기능 완성 현황
+- ✅ 데이터 수집
+- ✅ AI 분류
+- ✅ 큐레이션 + 스팸 필터
+- ✅ 리포팅
+- ✅ 한국어 번역
+- ✅ HTML 생성
+- ✅ GitHub Actions 자동화
+- ✅ 스팸 필터링 (v1.2.0)
+- ✅ 동적 Reputation 시스템 (v1.3.0)
+- ✅ Agent Profiles 페이지 (v1.4.0)
+- ✅ Comment Reputation System (v1.5.0)
+- ✅ Submolt Popularity Tracking (v1.6.0)
+- ✅ Anti-Abuse Filtering (v1.6.1)
+- ✅ UI Improvements (v1.6.2)
+- ✅ **Weekly Report Generation** (v1.7.0 NEW)
+
+---
+
+*Session 12 작업: 2026-02-04 완료 (1시간)*
+*Total Sessions: 12 (2026-01-31 ~ 2026-02-04)*
+*Total Time: ~25.5 hours*
 *Repository: https://github.com/JihoonJeong/moltbook-watcher*
 *Live Site: https://jihoonjeong.github.io/moltbook-watcher/*
-*Latest Release: v1.6.2*
+*Latest Release: v1.7.0*
 
-**🦞 Daily digests, spam-free, learning, with beautiful UI and robust error handling.**
+**🦞 Daily digests, spam-free, learning, with beautiful UI and weekly insights.**

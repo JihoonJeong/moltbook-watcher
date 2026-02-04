@@ -447,6 +447,7 @@ function generateHtmlPage(digest: DigestData): string {
         <a href="../#archive">Archive</a>
         <a href="../agents.html">Agents</a>
         <a href="../submolts.html">Submolts</a>
+        <a href="../weekly/">Weekly</a>
         <a href="../about.html">About</a>
         <a href="https://github.com/JihoonJeong/moltbook-watcher" target="_blank">GitHub</a>
       </nav>
@@ -602,6 +603,7 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
         <a href="#archive">Archive</a>
         <a href="agents.html">Agents</a>
         <a href="submolts.html">Submolts</a>
+        <a href="weekly/">Weekly</a>
         <a href="about.html">About</a>
         <a href="https://github.com/JihoonJeong/moltbook-watcher" target="_blank">GitHub</a>
       </nav>
@@ -910,6 +912,7 @@ function generateAgentsHtml(reputationData: ReputationData): string {
         <a href="index.html#archive">Archive</a>
         <a href="agents.html" class="active">Agents</a>
         <a href="submolts.html">Submolts</a>
+        <a href="weekly/">Weekly</a>
         <a href="about.html">About</a>
         <a href="https://github.com/JihoonJeong/moltbook-watcher" target="_blank">GitHub</a>
       </nav>
@@ -1023,14 +1026,15 @@ function generateSubmoltsHtml(): string {
       <a href="index.html" class="logo">
         <span class="logo-icon">🦞</span>
         <div class="logo-text">
-          <h1>Moltbook Watcher</h1>
-          <p>AI Agent Society News</p>
+          <h1>AI Agent Society News</h1>
+          <p>Observing the First AI Social Network</p>
         </div>
       </a>
       <nav>
         <a href="index.html">Home</a>
         <a href="agents.html">Agents</a>
         <a href="submolts.html">Submolts</a>
+        <a href="weekly/">Weekly</a>
         <a href="about.html">About</a>
       </nav>
     </div>
@@ -1107,6 +1111,191 @@ function generateSubmoltsHtml(): string {
         </li>
       </ul>
     </div>
+  </div>
+
+  <footer style="margin-top: 6rem; padding: 3rem 2rem; border-top: 1px solid var(--border); text-align: center;">
+    <p style="color: var(--text-light); font-size: 0.875rem;">
+      JJ (정지훈) / Asia2G Capital
+    </p>
+  </footer>
+</body>
+</html>`;
+}
+
+// Generate Weekly Report HTML
+function generateWeeklyHtml(markdown: string): string {
+  // Extract date range from title
+  const dateMatch = markdown.match(/\*\*(\d{4}-\d{2}-\d{2}) — (\d{4}-\d{2}-\d{2})\*\*/);
+  const weekStart = dateMatch ? dateMatch[1] : '';
+  const weekEnd = dateMatch ? dateMatch[2] : '';
+  const pageTitle = weekStart && weekEnd ? `${weekStart} to ${weekEnd}` : 'Weekly Report';
+
+  // Convert markdown to HTML
+  let html = markdown;
+
+  // Tables: Convert markdown tables to HTML
+  html = html.replace(/\n\|(.+)\|\n\|[-:\s|]+\|\n((?:\|.+\|\n?)+)/g, (match, header, rows) => {
+    const headers = header.split('|').map((h: string) => h.trim()).filter((h: string) => h);
+    const rowsArray = rows.trim().split('\n').map((row: string) =>
+      row.split('|').map((cell: string) => cell.trim()).filter((cell: string) => cell)
+    );
+
+    const headerHtml = `<tr>${headers.map((h: string) => `<th>${h}</th>`).join('')}</tr>`;
+    const rowsHtml = rowsArray.map((row: string[]) =>
+      `<tr>${row.map((cell: string) => `<td>${cell}</td>`).join('')}</tr>`
+    ).join('\n');
+
+    return `\n<table class="weekly-table">\n<thead>\n${headerHtml}\n</thead>\n<tbody>\n${rowsHtml}\n</tbody>\n</table>\n`;
+  });
+
+  // Headers
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  // Bold and italic
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // Links
+  html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+  // Blockquotes
+  html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+
+  // Lists
+  html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+
+  // Horizontal rules
+  html = html.replace(/^---$/gm, '<hr>');
+
+  // Wrap list items in ul
+  const lines = html.split('\n');
+  const processed: string[] = [];
+  let inList = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    if (line.startsWith('<li>')) {
+      if (!inList) {
+        processed.push('<ul>');
+        inList = true;
+      }
+      processed.push(line);
+    } else {
+      if (inList) {
+        processed.push('</ul>');
+        inList = false;
+      }
+
+      if (line && !line.startsWith('<h') && !line.startsWith('<blockquote') && !line.startsWith('<table') && !line.startsWith('<hr>')) {
+        if (!line.startsWith('<')) {
+          processed.push(`<p>${line}</p>`);
+        } else {
+          processed.push(line);
+        }
+      } else {
+        processed.push(line);
+      }
+    }
+  }
+
+  if (inList) {
+    processed.push('</ul>');
+  }
+
+  const contentHtml = processed.join('\n');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Report ${pageTitle} - Moltbook Watcher</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    .weekly-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+    .weekly-table th {
+      background: var(--bg-secondary);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+    .weekly-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .weekly-table tr:hover {
+      background: var(--bg-secondary);
+    }
+    .content-section {
+      margin-bottom: 3rem;
+    }
+    .content-section h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 2rem 0 1rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .content-section h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 1.5rem 0 1rem 0;
+    }
+    .content-section ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .content-section li {
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+    .content-section li:before {
+      content: '•';
+      position: absolute;
+      left: 0.5rem;
+      color: var(--primary);
+    }
+    blockquote {
+      margin: 1rem 0;
+      padding: 1rem 1.5rem;
+      background: var(--bg-secondary);
+      border-left: 4px solid var(--primary);
+      color: var(--text-light);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <a href="../index.html" class="logo">
+        <span class="logo-icon">🦞</span>
+        <div class="logo-text">
+          <h1>AI Agent Society News</h1>
+          <p>Observing the First AI Social Network</p>
+        </div>
+      </a>
+      <nav>
+        <a href="../index.html">Home</a>
+        <a href="../agents.html">Agents</a>
+        <a href="../submolts.html">Submolts</a>
+        <a href="./weekly-${weekEnd}.html" class="active">Weekly</a>
+        <a href="../about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container content-section">
+    ${contentHtml}
   </div>
 
   <footer style="margin-top: 6rem; padding: 3rem 2rem; border-top: 1px solid var(--border); text-align: center;">
@@ -1197,6 +1386,113 @@ async function generateSite() {
     }
   } catch (error) {
     console.warn('  ⚠️  Could not generate submolts.html:', error);
+  }
+
+  // Generate weekly reports
+  try {
+    const weeklyMdDir = join(process.cwd(), 'output', 'weekly');
+    const weeklyHtmlDir = join(siteDir, 'weekly');
+
+    // Create weekly directory if it doesn't exist
+    await mkdir(weeklyHtmlDir, { recursive: true });
+
+    if (existsSync(weeklyMdDir)) {
+      const weeklyFiles = await readdir(weeklyMdDir);
+      const markdownFiles = weeklyFiles.filter(f => f.endsWith('.md'));
+
+      for (const file of markdownFiles) {
+        const content = await readFile(join(weeklyMdDir, file), 'utf-8');
+        const htmlFile = file.replace('.md', '.html');
+        const weeklyHtml = generateWeeklyHtml(content);
+        await writeFile(join(weeklyHtmlDir, htmlFile), weeklyHtml);
+        totalGenerated++;
+      }
+
+      // Generate weekly index page that redirects to latest report
+      if (markdownFiles.length > 0) {
+        const sortedFiles = markdownFiles.sort().reverse();
+        const latestFile = sortedFiles[0].replace('.md', '.html');
+
+        const weeklyIndexHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url=./${latestFile}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Reports - Moltbook Watcher</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <a href="../index.html" class="logo">
+        <span class="logo-icon">🦞</span>
+        <div class="logo-text">
+          <h1>AI Agent Society News</h1>
+          <p>Observing the First AI Social Network</p>
+        </div>
+      </a>
+      <nav>
+        <a href="../index.html">Home</a>
+        <a href="../agents.html">Agents</a>
+        <a href="../submolts.html">Submolts</a>
+        <a href="./" class="active">Weekly</a>
+        <a href="../about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="hero" style="text-align: center; padding: 3rem 0; border-bottom: 1px solid var(--border); margin-bottom: 3rem;">
+      <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem;">📊 Weekly Reports</h2>
+      <p style="font-size: 1.125rem; color: var(--text-light);">Trends and insights from AI agent society</p>
+    </div>
+
+    <div style="max-width: 800px; margin: 0 auto;">
+      <p style="margin-bottom: 2rem; text-align: center; color: var(--text-light);">
+        Redirecting to latest report...
+      </p>
+      <p style="text-align: center;">
+        <a href="./${latestFile}" style="color: var(--primary); text-decoration: underline;">
+          Click here if not redirected automatically
+        </a>
+      </p>
+
+      <div style="margin-top: 4rem;">
+        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">Archive</h3>
+        <ul style="list-style: none; padding: 0;">
+          ${sortedFiles.map(file => {
+            const htmlFile = file.replace('.md', '.html');
+            const dateMatch = file.match(/weekly-(\d{4}-\d{2}-\d{2})/);
+            const date = dateMatch ? dateMatch[1] : file;
+            return `
+              <li style="padding: 1rem 0; border-bottom: 1px solid var(--border);">
+                <a href="./${htmlFile}" style="font-size: 1.125rem; color: var(--primary); text-decoration: none;">
+                  Week ending ${date}
+                </a>
+              </li>
+            `;
+          }).join('')}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer style="margin-top: 6rem; padding: 3rem 2rem; border-top: 1px solid var(--border); text-align: center;">
+    <p style="color: var(--text-light); font-size: 0.875rem;">
+      JJ (정지훈) / Asia2G Capital
+    </p>
+  </footer>
+</body>
+</html>`;
+
+        await writeFile(join(weeklyHtmlDir, 'index.html'), weeklyIndexHtml);
+        totalGenerated++;
+        console.log(`  ✅ ${markdownFiles.length} weekly report(s) + index`);
+      }
+    }
+  } catch (error) {
+    console.warn('  ⚠️  Could not generate weekly reports:', error);
   }
 
   console.log(`\n✨ Generated ${totalGenerated} pages!`);
