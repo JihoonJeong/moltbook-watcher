@@ -287,13 +287,16 @@ See [`.github/workflows/daily-digest.yml`](.github/workflows/daily-digest.yml) f
 
 ## Current Status
 
-### ✅ Implemented (v1.5.0)
+### ✅ Implemented (v1.6.2)
 - ✅ Heuristic-based classification
 - ✅ Multi-factor curation & scoring with trust bonus
 - ✅ **Spam filtering** with 0% false positive rate (v1.2.0)
 - ✅ **Dynamic reputation system** with auto-learning (v1.3.0)
 - ✅ **Agent profiles page** with rankings and post history (v1.4.0)
 - ✅ **Comment reputation system** with diversity filtering (v1.5.0)
+- ✅ **Submolt popularity tracking** with badges (v1.6.0)
+- ✅ **Anti-abuse filtering** for crypto spam (v1.6.1)
+- ✅ **Expandable UI** with "Read more" functionality (v1.6.2)
 - ✅ **Duplicate post prevention** for accurate counting
 - ✅ **Hybrid digest format** (Fresh + Trending)
 - ✅ Bilingual digest generation (EN/KO)
@@ -303,10 +306,13 @@ See [`.github/workflows/daily-digest.yml`](.github/workflows/daily-digest.yml) f
 
 ### 📊 Quality Metrics
 - **Translation Success Rate**: 100% (v1.1.1)
-- **Spam Detection Accuracy**: 100% true positive, 0% false positive (v1.2.0)
+- **Translation Capacity**: 4000 tokens (v1.6.2, doubled from v1.1.0)
+- **Spam Detection Accuracy**: 100% true positive, 0% false positive (v1.6.1)
+- **Digest Quality**: 0/10 spam ratio (v1.6.1, down from 9/10)
 - **Reputation Tracking**: Fully automated, duplicate-proof (v1.3.0+)
 - **Agent Profiles**: 12+ agents tracked with complete post/comment history (v1.5.0)
 - **Comment Diversity**: Max 2 per agent, guaranteed per post (v1.5.0)
+- **UI Rendering**: Quote marks → line breaks, expandable content (v1.6.2)
 
 ### 🔜 Planned
 - Weekly digest with trend analysis
@@ -383,6 +389,30 @@ This is an open-source project. Contributions welcome!
 - [Agent Profiles](https://jihoonjeong.github.io/moltbook-watcher/agents.html)
 
 ## Version History
+
+### v1.6.2 (2026-02-03) - UI Improvements & Error Handling
+- ✨ Expandable post content with "Read more" button
+- ✨ Quote markers converted to proper line breaks
+- ✨ Translation capacity increased (2000 → 4000 tokens)
+- 🐛 Fixed ID collision bug in Fresh/Trending sections
+- 🐛 Improved comment collection error handling
+- 🎯 Skip API calls for posts with no comments
+- 🎯 Silent handling of expected 404 errors
+
+### v1.6.1 (2026-02-03) - Anti-Abuse Filtering
+- ✨ Enhanced spam detection for crypto token promotion
+- ✨ Two-stage filtering (low quality → spam)
+- ✨ Specific pattern matching (pump.fun, contract addresses, repetitive signals)
+- 🐛 Relaxed filter to prevent false positives
+- 🎯 0/10 spam ratio achieved (down from 9/10)
+- 🎯 8 agents with spam penalties tracked
+
+### v1.6.0 (2026-02-02) - Submolt Popularity Tracking
+- ✨ Submolt activity tracking system
+- ✨ Submolt badges on posts (s/ml-ai, s/crypto, etc.)
+- ✨ Popular submolts section in digests
+- 📊 Track post count and featured count per submolt
+- 📊 New data file: data/submolts.json
 
 ### v1.5.0 (2026-02-01) - Comment Reputation System
 - ✨ Comment collection via Moltbook web API
