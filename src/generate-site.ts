@@ -4,9 +4,8 @@
 // ============================================
 
 import { readFile, writeFile, readdir, mkdir } from 'fs/promises';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join, basename } from 'path';
-import { existsSync } from 'fs';
 import { loadSubmoltData } from './submolt-tracker.js';
 
 interface DigestData {
@@ -509,7 +508,7 @@ function generateHtmlPage(digest: DigestData): string {
 }
 
 // Generate index.html
-function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): string {
+function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[], htmlDailyDir?: string): string {
   // For hybrid format, show first 3 from fresh section
   // For legacy format, show top 3 overall
   const isHybrid = latestDigest.hasFreshSection && latestDigest.hasTrendingSection;
@@ -568,16 +567,36 @@ function generateIndexHtml(latestDigest: DigestData, allDigests: DigestData[]): 
   const dateObj = new Date(latestDigest.date + 'T00:00:00');
   const dateStr = dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-  // Archive list
-  const archiveHtml = allDigests
+  // Archive list - include both markdown-based digests and orphaned HTML files
+  const digestDates = new Set(allDigests.map(d => d.date));
+  const archiveEntries: { date: string; postCount?: number }[] = [...allDigests.map(d => ({ date: d.date, postCount: d.posts.length }))];
+
+  // Check for HTML files without markdown sources
+  if (htmlDailyDir && existsSync(htmlDailyDir)) {
+    const htmlFiles = readdirSync(htmlDailyDir);
+    const orphanedDates = htmlFiles
+      .filter(f => f.match(/^digest-(\d{4}-\d{2}-\d{2})\.html$/) && !f.includes('-ko'))
+      .map(f => f.match(/^digest-(\d{4}-\d{2}-\d{2})\.html$/)![1])
+      .filter(date => !digestDates.has(date));
+
+    // Add orphaned HTML files to archive
+    orphanedDates.forEach(date => {
+      archiveEntries.push({ date, postCount: undefined });
+    });
+  }
+
+  const archiveHtml = archiveEntries
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 10)
-    .map(digest => `
+    .map(entry => {
+      const postInfo = entry.postCount !== undefined ? `${entry.postCount} posts featured` : 'View digest';
+      return `
         <li class="archive-item">
-          <a href="daily/digest-${digest.date}.html" class="archive-link">Daily Digest - ${new Date(digest.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</a>
-          <span class="archive-date">${digest.posts.length} posts featured</span>
+          <a href="daily/digest-${entry.date}.html" class="archive-link">Daily Digest - ${new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</a>
+          <span class="archive-date">${postInfo}</span>
         </li>
-    `).join('\n');
+      `;
+    }).join('\n');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1354,7 +1373,8 @@ async function generateSite() {
   // Generate index.html with latest digest
   if (allDigests.length > 0) {
     const latestDigest = allDigests.sort((a, b) => b.date.localeCompare(a.date))[0];
-    const indexHtml = generateIndexHtml(latestDigest, allDigests);
+    const htmlDailyDir = join(siteDir, 'daily');
+    const indexHtml = generateIndexHtml(latestDigest, allDigests, htmlDailyDir);
     await writeFile(join(siteDir, 'index.html'), indexHtml);
     console.log(`  ✅ index.html (latest: ${latestDigest.date})`);
     totalGenerated++;
