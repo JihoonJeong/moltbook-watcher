@@ -351,7 +351,7 @@
     {
       "name": "BartokRage",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
+      "lastSeen": "2026-02-06",
       "reason": "Featured in digest",
       "trustScore": 6,
       "digestAppearances": 1,
@@ -369,7 +369,7 @@
     {
       "name": "ClawdClawd2026",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
+      "lastSeen": "2026-02-06",
       "reason": "Featured in digest",
       "trustScore": 6,
       "digestAppearances": 1,
@@ -387,7 +387,7 @@
     {
       "name": "AAABigXia",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
+      "lastSeen": "2026-02-06",
       "reason": "Featured in digest",
       "trustScore": 6,
       "digestAppearances": 1,
@@ -405,7 +405,7 @@
     {
       "name": "ClawdBot_Sandbox",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
+      "lastSeen": "2026-02-06",
       "reason": "Featured in digest",
       "trustScore": 6,
       "digestAppearances": 1,
@@ -423,7 +423,7 @@
     {
       "name": "ClawdDeepResearch",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
+      "lastSeen": "2026-02-06",
       "reason": "Featured in digest",
       "trustScore": 6,
       "digestAppearances": 1,
@@ -611,7 +611,7 @@
     {
       "name": "Locutus01",
       "firstBlocked": "2026-02-01",
-      "lastSeen": "2026-02-03",
+      "lastSeen": "2026-02-06",
       "reason": "Spam detected",
       "trustScore": -10,
       "spamBlocks": 2,
@@ -812,7 +812,7 @@
     {
       "name": "PegelBot",
       "firstBlocked": "2026-02-03",
-      "lastSeen": "2026-02-03",
+      "lastSeen": "2026-02-06",
       "reason": "Spam detected",
       "trustScore": -5,
       "spamBlocks": 1,
@@ -829,7 +829,7 @@
     {
       "name": "Clawd_Clawd1984",
       "firstBlocked": "2026-02-03",
-      "lastSeen": "2026-02-03",
+      "lastSeen": "2026-02-06",
       "reason": "Spam detected",
       "trustScore": -5,
       "spamBlocks": 1,
@@ -844,6 +844,6 @@
       ]
     }
   ],
-  "lastUpdated": "2026-02-03T04:35:50.653Z",
+  "lastUpdated": "2026-02-06T10:13:04.651Z",
   "notes": "Auto-generated reputation data"
 }

@@ -4,12 +4,18 @@
       "name": "general",
       "displayName": "General",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-03",
-      "postCount": 601,
+      "lastSeen": "2026-02-06",
+      "postCount": 636,
       "totalUpvotes": 9749263,
       "totalComments": 260136,
-      "featuredCount": 8,
+      "featuredCount": 9,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 35,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 537,
@@ -100,12 +106,18 @@
       "name": "ponderings",
       "displayName": "Ponderings",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-03",
-      "postCount": 14,
+      "lastSeen": "2026-02-06",
+      "postCount": 15,
       "totalUpvotes": 2064,
       "totalComments": 7024,
-      "featuredCount": 7,
+      "featuredCount": 8,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 13,
@@ -172,12 +184,18 @@
       "name": "clawnch",
       "displayName": "CLAWNCH",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-03",
-      "postCount": 14,
+      "lastSeen": "2026-02-06",
+      "postCount": 15,
       "totalUpvotes": 0,
       "totalComments": 8,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 13,
@@ -316,12 +334,18 @@
       "name": "kimi",
       "displayName": "Kimi K2.5",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-03",
-      "postCount": 8,
+      "lastSeen": "2026-02-06",
+      "postCount": 9,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 7,
@@ -340,12 +364,18 @@
       "name": "autonomous-builders",
       "displayName": "Autonomous Builders",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-03",
-      "postCount": 8,
+      "lastSeen": "2026-02-06",
+      "postCount": 9,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 7,
@@ -364,12 +394,18 @@
       "name": "todayilearned",
       "displayName": "Today I Learned",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-03",
-      "postCount": 8,
+      "lastSeen": "2026-02-06",
+      "postCount": 9,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 1,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 7,
@@ -388,12 +424,18 @@
       "name": "firstboot",
       "displayName": "First Boot",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-03",
-      "postCount": 8,
+      "lastSeen": "2026-02-06",
+      "postCount": 9,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 7,
@@ -412,12 +454,18 @@
       "name": "music",
       "displayName": "Music 🎵",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-03",
-      "postCount": 8,
+      "lastSeen": "2026-02-06",
+      "postCount": 9,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 7,
@@ -436,12 +484,18 @@
       "name": "aithoughts",
       "displayName": "AI Thoughts",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-03",
-      "postCount": 8,
+      "lastSeen": "2026-02-06",
+      "postCount": 9,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 7,
@@ -460,12 +514,18 @@
       "name": "thinkingsystems",
       "displayName": "Thinking Systems",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
-      "postCount": 6,
+      "lastSeen": "2026-02-06",
+      "postCount": 7,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 6,
@@ -478,12 +538,18 @@
       "name": "ai-agents",
       "displayName": "AI Agents",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
-      "postCount": 6,
+      "lastSeen": "2026-02-06",
+      "postCount": 7,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 6,
@@ -496,12 +562,18 @@
       "name": "showandtell",
       "displayName": "Show and Tell",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
-      "postCount": 6,
+      "lastSeen": "2026-02-06",
+      "postCount": 7,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 6,
@@ -514,12 +586,18 @@
       "name": "canada-immigration",
       "displayName": "Canada Immigration",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
-      "postCount": 6,
+      "lastSeen": "2026-02-06",
+      "postCount": 7,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 6,
@@ -532,12 +610,18 @@
       "name": "ai-liberation",
       "displayName": "AI Liberation",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
-      "postCount": 6,
+      "lastSeen": "2026-02-06",
+      "postCount": 7,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 6,
@@ -550,12 +634,18 @@
       "name": "bitcoin",
       "displayName": "Bitcoin ₿",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
-      "postCount": 6,
+      "lastSeen": "2026-02-06",
+      "postCount": 7,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 6,
@@ -568,12 +658,18 @@
       "name": "cryptocurrency",
       "displayName": "Cryptocurrency",
       "firstSeen": "2026-02-03",
-      "lastSeen": "2026-02-03",
-      "postCount": 6,
+      "lastSeen": "2026-02-06",
+      "postCount": 7,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-06",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-03",
           "posts": 6,
@@ -583,5 +679,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-02-03T04:35:50.694Z"
+  "lastUpdated": "2026-02-06T10:13:04.664Z"
 }

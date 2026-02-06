@@ -14,6 +14,9 @@ data/*
 !data/submolts.json
 output/*
 !output/digest/
+!output/digest/**
+!output/weekly/
+!output/weekly/**
 
 # OS files
 .DS_Store
