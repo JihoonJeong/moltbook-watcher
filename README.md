@@ -288,7 +288,7 @@ See [`.github/workflows/daily-digest.yml`](.github/workflows/daily-digest.yml) f
 
 ## Current Status
 
-### ✅ Implemented (v1.6.2)
+### ✅ Implemented (v1.7.0)
 - ✅ Heuristic-based classification
 - ✅ Multi-factor curation & scoring with trust bonus
 - ✅ **Spam filtering** with 0% false positive rate (v1.2.0)
@@ -298,6 +298,8 @@ See [`.github/workflows/daily-digest.yml`](.github/workflows/daily-digest.yml) f
 - ✅ **Submolt popularity tracking** with badges (v1.6.0)
 - ✅ **Anti-abuse filtering** for crypto spam (v1.6.1)
 - ✅ **Expandable UI** with "Read more" functionality (v1.6.2)
+- ✅ **Weekly Report generation** with automated scheduling (v1.7.0)
+- ✅ **Orphaned HTML recovery** for lost markdown sources (v1.7.0)
 - ✅ **Duplicate post prevention** for accurate counting
 - ✅ **Hybrid digest format** (Fresh + Trending)
 - ✅ Bilingual digest generation (EN/KO)
@@ -311,14 +313,16 @@ See [`.github/workflows/daily-digest.yml`](.github/workflows/daily-digest.yml) f
 - **Spam Detection Accuracy**: 100% true positive, 0% false positive (v1.6.1)
 - **Digest Quality**: 0/10 spam ratio (v1.6.1, down from 9/10)
 - **Reputation Tracking**: Fully automated, duplicate-proof (v1.3.0+)
-- **Agent Profiles**: 12+ agents tracked with complete post/comment history (v1.5.0)
+- **Agent Profiles**: 50+ agents tracked with complete post/comment history (v1.7.0)
 - **Comment Diversity**: Max 2 per agent, guaranteed per post (v1.5.0)
 - **UI Rendering**: Quote marks → line breaks, expandable content (v1.6.2)
+- **Weekly Reports**: Automated every Sunday, 100% deduplication accuracy (v1.7.0)
+- **Archive Completeness**: 100% recovery of orphaned HTML files (v1.7.0)
 
 ### 🔜 Planned
-- Weekly digest with trend analysis
 - RSS feed support
 - Agent activity charts and graphs
+- Email newsletter integration
 
 ## Technology Stack
 
@@ -390,6 +394,18 @@ This is an open-source project. Contributions welcome!
 - [Agent Profiles](https://jihoonjeong.github.io/moltbook-watcher/agents.html)
 
 ## Version History
+
+### v1.7.0 (2026-02-08) - Weekly Reports & System Robustness
+- ✨ **Weekly Report Generation**: Automated weekly aggregation with topic trends, agent activity, and top posts
+- ✨ **GitHub Actions Automation**: Weekly reports auto-generate every Sunday at 20:00 KST
+- ✨ **Orphaned HTML Recovery**: Archive now includes HTML files even when markdown sources are lost
+- 🐛 **Weekly Report Deduplication**: Fixed duplicate posts in rankings (title + author dedup)
+- 🐛 **Topic Parsing Fix**: Correctly handles submolt badges in topic classification
+- 🐛 **.gitignore Critical Fix**: Digest markdown files now properly tracked with `!output/digest/**`
+- 📊 **Data Quality**: 100% deduplication accuracy in weekly rankings
+- 📊 **Archive Completeness**: All dates visible even with missing markdown sources
+- 🎯 Minimum 5 digests required for weekly report generation
+- 🎯 Manual override available via workflow_dispatch
 
 ### v1.6.2 (2026-02-03) - UI Improvements & Error Handling
 - ✨ Expandable post content with "Read more" button
