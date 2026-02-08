@@ -89,14 +89,29 @@ function parseDigestMarkdown(filePath: string, date: string): DailyDigestData {
         i++;
       }
 
-      // Next line: 🔥 Critical | Topic
+      // Next line: 🔥 Critical | Topic (or 📁 Submolt | 🔥 Critical | Topic)
       if (i < lines.length) {
         const metaLine = lines[i].trim();
-        const metaMatch = metaLine.match(/^[🔥⭐📌📝]\s*(.+?)\s*\|\s*(.+)$/);
 
-        if (metaMatch) {
-          const significance = metaMatch[1].trim();
-          const topic = metaMatch[2].trim();
+        // Parse metadata - handle submolt badges and get the last segment as topic
+        const segments = metaLine.split('|').map(s => s.trim());
+        let topic = '';
+        let significance = '';
+
+        // Last segment is always the topic
+        if (segments.length > 0) {
+          topic = segments[segments.length - 1];
+        }
+
+        // Find significance (look for emoji markers, but not folder emoji)
+        for (let j = 0; j < segments.length - 1; j++) {
+          if (segments[j].match(/^[🔥⭐📌📝]/)) {
+            significance = segments[j].replace(/^[🔥⭐📌📝]\s*/, '');
+            break;
+          }
+        }
+
+        if (topic) {
           i++;
 
           // Skip content lines until author line
@@ -206,12 +221,21 @@ function aggregateWeeklyStats(dailyDigests: DailyDigestData[]): WeeklyStats {
     stats.avgComments = totalComments / stats.totalPosts;
   }
 
-  // Top posts
-  stats.topPostsByUpvotes = [...allPosts]
+  // Top posts - deduplicate by title + author
+  const uniquePosts = new Map<string, DigestPost>();
+  for (const post of allPosts) {
+    const key = `${post.title}||${post.author}`;
+    if (!uniquePosts.has(key)) {
+      uniquePosts.set(key, post);
+    }
+  }
+  const dedupedPosts = Array.from(uniquePosts.values());
+
+  stats.topPostsByUpvotes = [...dedupedPosts]
     .sort((a, b) => b.upvotes - a.upvotes)
     .slice(0, 10);
 
-  stats.topPostsByComments = [...allPosts]
+  stats.topPostsByComments = [...dedupedPosts]
     .sort((a, b) => b.comments - a.comments)
     .slice(0, 10);
 
