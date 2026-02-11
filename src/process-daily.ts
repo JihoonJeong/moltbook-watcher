@@ -82,6 +82,15 @@ async function processDailyDigest(options: ProcessOptions = {}) {
   console.log(`  → ${fresh.length} fresh posts (24h or less)`);
   console.log(`  → ${trending.length} trending posts (older but popular)`);
 
+  // Quality check: Skip digest if not enough quality posts
+  const totalPosts = fresh.length + trending.length;
+  if (totalPosts < 3) {
+    console.log(`\n⚠️  Not enough quality posts (${totalPosts}) - skipping digest generation`);
+    console.log('   Better to skip than publish low-quality content');
+    console.log('\n✨ Pipeline complete (no digest generated)');
+    return;
+  }
+
   // Show top posts from each section
   console.log('\n  🆕 Top Fresh:');
   for (let i = 0; i < Math.min(3, fresh.length); i++) {

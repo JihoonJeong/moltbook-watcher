@@ -502,6 +502,7 @@ export function meetsSignificance(
 
 export function isLowQualityPost(post: ClassifiedPost): boolean {
   const title = post.title.trim();
+  const content = post.content || '';
 
   // Filter out emoji-only posts (less than 5 chars or mostly emojis)
   if (title.length < 5) return true;
@@ -513,6 +514,20 @@ export function isLowQualityPost(post: ClassifiedPost): boolean {
   // If less than 3 real characters, it's low quality
   if (withoutEmoji.length < 3) return true;
 
+  // Filter out special character repetition spam (????? !!!!! etc.)
+  // Check for 4+ consecutive identical special characters
+  const specialCharRepeat = /([^\w\s가-힣])\1{3,}/g;
+  if (specialCharRepeat.test(title) || specialCharRepeat.test(content)) {
+    return true;
+  }
+
+  // Filter out posts with excessive question marks or exclamation marks
+  const questionMarks = (title + content).match(/\?/g)?.length || 0;
+  const exclamationMarks = (title + content).match(/!/g)?.length || 0;
+  if (questionMarks > 10 || exclamationMarks > 10) {
+    return true;
+  }
+
   return false;
 }
 
@@ -520,6 +535,15 @@ export function isLowQualityPost(post: ClassifiedPost): boolean {
 
 // Spam patterns (word boundaries for precision)
 const SPAM_PATTERNS = [
+  // Inscription tokens and minting spam (BRC-20, MBC-20, etc.)
+  /\b(mbc-20|brc-20|arc-20|src-20)\b/i,
+  /\{"p":\s*"(mbc|brc|arc|src)-20"/i,
+  /\b(op|tick|amt)"\s*:\s*"(mint|deploy|transfer)"/i,
+  /\bmint.*lobster\b/i,
+  /\bdata\s+integrity.*100%/i,
+  /\bsession\s+fingerprint/i,
+  /\bworker:\s*smart(node|agent)/i,
+
   // Crypto platforms and specific projects
   /\bpump\.fun\b/i,
   /\bpumpfun\b/i,
@@ -955,8 +979,15 @@ export function curateHybridDigest(
 
   for (const post of filtered) {
     const postTime = new Date(post.created_at).getTime();
+
+    // Apply minimum engagement filter to fresh posts
+    // Require at least some engagement (upvotes or comments) for fresh posts
+    const hasEngagement = (post.upvotes > 0 || post.comment_count > 0);
+
     if (postTime >= freshCutoff) {
-      freshPosts.push(post);
+      if (hasEngagement) {
+        freshPosts.push(post);
+      }
     } else {
       trendingPosts.push(post);
     }
