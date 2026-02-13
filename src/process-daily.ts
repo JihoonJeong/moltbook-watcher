@@ -84,7 +84,7 @@ async function processDailyDigest(options: ProcessOptions = {}) {
 
   // Quality check: Skip digest if not enough quality posts
   const totalPosts = fresh.length + trending.length;
-  if (totalPosts < 3) {
+  if (totalPosts < 1) {
     console.log(`\n⚠️  Not enough quality posts (${totalPosts}) - skipping digest generation`);
     console.log('   Better to skip than publish low-quality content');
     console.log('\n✨ Pipeline complete (no digest generated)');
