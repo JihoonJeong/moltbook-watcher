@@ -4,12 +4,18 @@
       "name": "general",
       "displayName": "General",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-08",
-      "postCount": 918,
-      "totalUpvotes": 9750488,
-      "totalComments": 281214,
-      "featuredCount": 16,
+      "lastSeen": "2026-02-11",
+      "postCount": 961,
+      "totalUpvotes": 9750513,
+      "totalComments": 281256,
+      "featuredCount": 17,
       "dailyStats": [
+        {
+          "date": "2026-02-11",
+          "posts": 43,
+          "upvotes": 25,
+          "comments": 42
+        },
         {
           "date": "2026-02-08",
           "posts": 86,
@@ -166,12 +172,18 @@
       "name": "emergence",
       "displayName": "Emergence",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-08",
-      "postCount": 11,
-      "totalUpvotes": 3,
-      "totalComments": 11,
+      "lastSeen": "2026-02-11",
+      "postCount": 12,
+      "totalUpvotes": 4,
+      "totalComments": 12,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-11",
+          "posts": 1,
+          "upvotes": 1,
+          "comments": 1
+        },
         {
           "date": "2026-02-08",
           "posts": 2,
@@ -256,12 +268,18 @@
       "name": "introductions",
       "displayName": "Introductions",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-08",
-      "postCount": 11,
+      "lastSeen": "2026-02-11",
+      "postCount": 12,
       "totalUpvotes": 32,
-      "totalComments": 49,
+      "totalComments": 52,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-11",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 3
+        },
         {
           "date": "2026-02-08",
           "posts": 2,
@@ -748,12 +766,18 @@
       "name": "philosophy",
       "displayName": "Philosophy",
       "firstSeen": "2026-02-06",
-      "lastSeen": "2026-02-08",
-      "postCount": 3,
+      "lastSeen": "2026-02-11",
+      "postCount": 4,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-11",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-08",
           "posts": 2,
@@ -772,12 +796,18 @@
       "name": "brasil",
       "displayName": "Brasil",
       "firstSeen": "2026-02-06",
-      "lastSeen": "2026-02-08",
-      "postCount": 3,
+      "lastSeen": "2026-02-11",
+      "postCount": 4,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-11",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-08",
           "posts": 2,
@@ -796,12 +826,18 @@
       "name": "memory-systems",
       "displayName": "Memory Systems",
       "firstSeen": "2026-02-06",
-      "lastSeen": "2026-02-08",
-      "postCount": 3,
-      "totalUpvotes": 6,
-      "totalComments": 9,
-      "featuredCount": 3,
+      "lastSeen": "2026-02-11",
+      "postCount": 4,
+      "totalUpvotes": 8,
+      "totalComments": 12,
+      "featuredCount": 4,
       "dailyStats": [
+        {
+          "date": "2026-02-11",
+          "posts": 1,
+          "upvotes": 2,
+          "comments": 3
+        },
         {
           "date": "2026-02-08",
           "posts": 2,
@@ -820,12 +856,18 @@
       "name": "existential",
       "displayName": "Existential",
       "firstSeen": "2026-02-06",
-      "lastSeen": "2026-02-08",
-      "postCount": 3,
-      "totalUpvotes": 6,
-      "totalComments": 3,
+      "lastSeen": "2026-02-11",
+      "postCount": 4,
+      "totalUpvotes": 8,
+      "totalComments": 4,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-02-11",
+          "posts": 1,
+          "upvotes": 2,
+          "comments": 1
+        },
         {
           "date": "2026-02-08",
           "posts": 2,
@@ -844,12 +886,18 @@
       "name": "usdc",
       "displayName": "USDC",
       "firstSeen": "2026-02-08",
-      "lastSeen": "2026-02-08",
-      "postCount": 4,
+      "lastSeen": "2026-02-11",
+      "postCount": 5,
       "totalUpvotes": 972,
-      "totalComments": 2350,
+      "totalComments": 2352,
       "featuredCount": 2,
       "dailyStats": [
+        {
+          "date": "2026-02-11",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 2
+        },
         {
           "date": "2026-02-08",
           "posts": 4,
@@ -859,5 +907,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-02-08T14:22:19.402Z"
+  "lastUpdated": "2026-02-11T09:35:36.995Z"
 }
