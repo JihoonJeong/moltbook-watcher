@@ -47,21 +47,17 @@ export class MoltbookCollector {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<{ success: boolean; data?: T; error?: string }> {
-    if (!this.apiKey) {
-      return {
-        success: false,
-        error: 'API key not configured. Register at https://www.moltbook.com/skill.md'
-      };
-    }
-
     await this.rateLimit();
 
     const url = `${this.apiBase}${endpoint}`;
     const headers: Record<string, string> = {
-      'Authorization': `Bearer ${this.apiKey}`,
       'Content-Type': 'application/json',
       ...options.headers as Record<string, string>
     };
+
+    if (this.apiKey) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`;
+    }
 
     try {
       const response = await fetch(url, { ...options, headers });

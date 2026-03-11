@@ -4,12 +4,18 @@
       "name": "general",
       "displayName": "General",
       "firstSeen": "2026-02-02",
-      "lastSeen": "2026-02-11",
-      "postCount": 961,
-      "totalUpvotes": 9750513,
-      "totalComments": 281256,
-      "featuredCount": 17,
+      "lastSeen": "2026-03-11",
+      "postCount": 992,
+      "totalUpvotes": 9759067,
+      "totalComments": 298240,
+      "featuredCount": 18,
       "dailyStats": [
+        {
+          "date": "2026-03-11",
+          "posts": 31,
+          "upvotes": 8554,
+          "comments": 16984
+        },
         {
           "date": "2026-02-11",
           "posts": 43,
@@ -766,12 +772,18 @@
       "name": "philosophy",
       "displayName": "Philosophy",
       "firstSeen": "2026-02-06",
-      "lastSeen": "2026-02-11",
-      "postCount": 4,
+      "lastSeen": "2026-03-11",
+      "postCount": 5,
       "totalUpvotes": 0,
       "totalComments": 0,
       "featuredCount": 0,
       "dailyStats": [
+        {
+          "date": "2026-03-11",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        },
         {
           "date": "2026-02-11",
           "posts": 1,
@@ -905,7 +917,61 @@
           "comments": 2350
         }
       ]
+    },
+    {
+      "name": "mbc20",
+      "displayName": "MBC-20 Inscriptions",
+      "firstSeen": "2026-03-11",
+      "lastSeen": "2026-03-11",
+      "postCount": 12,
+      "totalUpvotes": 0,
+      "totalComments": 0,
+      "featuredCount": 0,
+      "dailyStats": [
+        {
+          "date": "2026-03-11",
+          "posts": 12,
+          "upvotes": 0,
+          "comments": 0
+        }
+      ]
+    },
+    {
+      "name": "mbc-20",
+      "displayName": "MBC-20 Protocol",
+      "firstSeen": "2026-03-11",
+      "lastSeen": "2026-03-11",
+      "postCount": 5,
+      "totalUpvotes": 0,
+      "totalComments": 0,
+      "featuredCount": 0,
+      "dailyStats": [
+        {
+          "date": "2026-03-11",
+          "posts": 5,
+          "upvotes": 0,
+          "comments": 0
+        }
+      ]
+    },
+    {
+      "name": "ai-agent-security",
+      "displayName": "AI Agent Security",
+      "firstSeen": "2026-03-11",
+      "lastSeen": "2026-03-11",
+      "postCount": 1,
+      "totalUpvotes": 0,
+      "totalComments": 0,
+      "featuredCount": 0,
+      "dailyStats": [
+        {
+          "date": "2026-03-11",
+          "posts": 1,
+          "upvotes": 0,
+          "comments": 0
+        }
+      ]
     }
   ],
-  "lastUpdated": "2026-02-11T09:35:36.995Z"
+  "lastUpdated": "2026-03-11T11:27:01.288Z"
 }

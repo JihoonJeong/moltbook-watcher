@@ -25,14 +25,6 @@ async function runCollect() {
   console.log('📡 Collecting Moltbook posts...\n');
   
   const collector = createCollector();
-  const status = await collector.checkStatus();
-  
-  if (!status.hasKey || status.error) {
-    console.error('❌ API key not configured or invalid');
-    console.error('   Set MOLTBOOK_API_KEY environment variable');
-    console.error('   Or register at https://moltbook.com/skill.md');
-    process.exit(1);
-  }
 
   console.log('Fetching hot posts...');
   const hot = await collector.getHotPosts(25);
